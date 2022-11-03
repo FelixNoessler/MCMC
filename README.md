@@ -1,4 +1,4 @@
-# MCMC
+# Markov chain Monte Carlo methods
 
 1. [Random Walk Metropolis](random_walk_metropolis.md) of unkown σ and μ of a Normal distribution
 
