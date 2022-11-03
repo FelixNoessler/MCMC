@@ -57,7 +57,7 @@ let
         return p
     end
 
-    nsamples = 5000
+    nsamples = 20_000
     nchains = 6
     nparameter = 2
     accepted_θ = zeros(nchains, nparameter, nsamples)
@@ -181,11 +181,11 @@ end
 ````
 
 ````
-median(y) = 5.047163601850844
-std(y) = 1.9534517221921874
-accepted / nsamples = [0.6048, 0.602, 0.591, 0.6014, 0.6136, 0.6098]
-median_μ = 5.062607764631522
-median_σ = 1.9488129391766038
+median(y) = 4.98024737398589
+std(y) = 2.001295545120521
+accepted / nsamples = [0.61725, 0.6109, 0.6103, 0.6183, 0.6146, 0.61625]
+median_μ = 5.017761637005107
+median_σ = 1.9960339076995193
 
 ````
 

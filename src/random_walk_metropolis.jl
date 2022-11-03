@@ -52,7 +52,7 @@ let
         return p 
     end
 
-    nsamples = 5000
+    nsamples = 20_000
     nchains = 6
     nparameter = 2
     accepted_θ = zeros(nchains, nparameter, nsamples)
