@@ -181,16 +181,17 @@ end
 ````
 
 ````
-median(y) = 5.153871190262614
-std(y) = 1.9924000117938518
-accepted / nsamples = [0.6072, 0.608, 0.6124, 0.6092, 0.6138, 0.615]
-median_μ = 5.0212679190233045
-median_σ = 1.9852937885924116
+median(y) = 5.047163601850844
+std(y) = 1.9534517221921874
+accepted / nsamples = [0.6048, 0.602, 0.591, 0.6014, 0.6136, 0.6098]
+median_μ = 5.062607764631522
+median_σ = 1.9488129391766038
 
 ````
 
 Trace plot and densities of the MCMC samples:
 ![](img/trace_unknown_sigma_mu.png)
+
 Posterior predictive check (mean in red):
 ![](img/pred_unknown_sigma_mu.png)
 
