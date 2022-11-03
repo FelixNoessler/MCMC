@@ -1,12 +1,13 @@
 # # Random walk Metropolis
 
-# $$ \begin{equation}p(θ | data) 	\propto p(data | θ) \cdot p(θ)\end{equation} $$
-# $$ \begin{equation}
-#   r = min(1,  \frac{p(θ_{t+1} | data)}{p(θ_{t} | data)})     
-# \end{equation}
+# $$ 
+# \begin{align}
+#         &p(θ | data) \propto p(data | θ) \cdot p(θ) \\
+#         &r_{M} = min\left(1,  \frac{p(θ_{t+1} | data)}{p(θ_{t} | data)}\right)     
+# \end{align} 
 # $$
 
-# **Setup:**
+# **Setup:**  
 using Distributions, Statistics, LinearAlgebra
 using CairoMakie
 
@@ -17,7 +18,7 @@ own_theme = Theme(
 )
 set_theme!(own_theme)
 
-# **Example: unknown σ and μ**
+# **Example: unknown σ and μ**  
 let 
     μ, σ = 5, 2
     
@@ -173,9 +174,9 @@ let
     nothing
 end
 
-# Trace plot and densities of the MCMC samples:
+# Trace plot and densities of the MCMC samples:  
 # ![](img/trace_unknown_sigma_mu.png)
-# Posterior predictive check (mean in red):
+# Posterior predictive check (mean in red):  
 # ![](img/pred_unknown_sigma_mu.png)
 
 ## Literate.markdown("src/random_walk_metropolis.jl"; flavor = Literate.CommonMarkFlavor(), execute=false)

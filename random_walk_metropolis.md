@@ -1,9 +1,10 @@
 # Random walk Metropolis
 
-$$ \begin{equation}p(θ | data) 	\propto p(data | θ) \cdot p(θ)\end{equation} $$
-$$ \begin{equation}
-  r = min(1,  \frac{p(θ_{t+1} | data)}{p(θ_{t} | data)})
-\end{equation}
+$$
+\begin{align}
+        &p(θ | data) \propto p(data | θ) \cdot p(θ) \\
+        &r_{M} = min\left(1,  \frac{p(θ_{t+1} | data)}{p(θ_{t} | data)}\right)
+\end{align}
 $$
 
 **Setup:**
@@ -180,11 +181,11 @@ end
 ````
 
 ````
-median(y) = 5.336466619482145
-std(y) = 2.0799088600442035
-accepted / nsamples = [0.6368, 0.6206, 0.6032, 0.6232, 0.6188, 0.6232]
-median_μ = 5.223647526947186
-median_σ = 2.071015550532189
+median(y) = 5.153871190262614
+std(y) = 1.9924000117938518
+accepted / nsamples = [0.6072, 0.608, 0.6124, 0.6092, 0.6138, 0.615]
+median_μ = 5.0212679190233045
+median_σ = 1.9852937885924116
 
 ````
 
