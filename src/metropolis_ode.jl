@@ -232,10 +232,10 @@ end
 
 # **Results:**
 #
-# ![](img/ode_trace.png)
+# ![](../img/ode_trace.png)
 #
 # the black line is generated with the parameters that are also used to produce the test data set, orange and blue lines are produced with posterior draws, the circles represent the test data set:
-# ![](img/ode_pred.png)
+# ![](../img/ode_pred.png)
 
 ## to generate the Markdown file from the script:
 import Literate; Literate.markdown("src/metropolis_ode.jl", "md/"; flavor=Literate.CommonMarkFlavor(), execute=false)

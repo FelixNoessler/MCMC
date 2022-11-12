@@ -175,9 +175,9 @@ let
 end
 
 # Trace plot and densities of the MCMC samples:  
-# ![](img/trace_unknown_sigma_mu.png)  
+# ![](../img/trace_unknown_sigma_mu.png)  
 # 
 # Posterior predictive check (mean in red):    
-# ![](img/pred_unknown_sigma_mu.png)  
+# ![](../img/pred_unknown_sigma_mu.png)  
 
 ## Literate.markdown("src/random_walk_metropolis.jl", "md/"; flavor = Literate.CommonMarkFlavor(), execute=false)
