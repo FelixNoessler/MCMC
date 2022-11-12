@@ -9,3 +9,8 @@
  
 
 
+2. [ODE-Metropolis script](metropolis_ode.md) for inference of unkown parameter values of a Lotka-Volterra ODE-system
+
+ <img src="img/ode_trace.png" width="500">
+ 
+ <img src="img/ode_pred.png" width="500">
