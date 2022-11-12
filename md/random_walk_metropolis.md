@@ -180,15 +180,6 @@ let
 end
 ````
 
-````
-median(y) = 4.98024737398589
-std(y) = 2.001295545120521
-accepted / nsamples = [0.61725, 0.6109, 0.6103, 0.6183, 0.6146, 0.61625]
-median_μ = 5.017761637005107
-median_σ = 1.9960339076995193
-
-````
-
 Trace plot and densities of the MCMC samples:
 ![](img/trace_unknown_sigma_mu.png)
 
@@ -196,7 +187,7 @@ Posterior predictive check (mean in red):
 ![](img/pred_unknown_sigma_mu.png)
 
 ````julia
-# Literate.markdown("src/random_walk_metropolis.jl"; flavor = Literate.CommonMarkFlavor(), execute=false)
+# Literate.markdown("src/random_walk_metropolis.jl", "md/"; flavor = Literate.CommonMarkFlavor(), execute=false)
 ````
 
 ---

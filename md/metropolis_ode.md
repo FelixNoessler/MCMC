@@ -260,7 +260,7 @@ the black line is generated with the parameters that are also used to produce th
 
 ````julia
 # to generate the Markdown file from the script:
-import Literate; Literate.markdown("src/metropolis_ode.jl"; flavor=Literate.CommonMarkFlavor(), execute=false)
+import Literate; Literate.markdown("src/metropolis_ode.jl", "md/"; flavor=Literate.CommonMarkFlavor(), execute=false)
 ````
 
 ---

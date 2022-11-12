@@ -180,4 +180,4 @@ end
 # Posterior predictive check (mean in red):    
 # ![](img/pred_unknown_sigma_mu.png)  
 
-## Literate.markdown("src/random_walk_metropolis.jl"; flavor = Literate.CommonMarkFlavor(), execute=false)
+## Literate.markdown("src/random_walk_metropolis.jl", "md/"; flavor = Literate.CommonMarkFlavor(), execute=false)
