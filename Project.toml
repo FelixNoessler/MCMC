@@ -1,6 +1,7 @@
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Copulas = "ae264745-0b69-425e-9d9d-cf662c5eec93"
+DimensionalData = "0703355e-b756-11e9-17c0-8b28908087d0"
 DisplayAs = "0b91fe84-8a4c-11e9-3e1d-67c38462b6d6"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"

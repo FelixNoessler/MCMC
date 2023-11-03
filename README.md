@@ -14,3 +14,9 @@
  <img src="img/ode_trace.png" width="500">
  
  <img src="img/ode_pred.png" width="500">
+
+
+3. [Differential Evolution MCMC](md/DE.md) of unkown σ and μ of a Normal distribution
+
+<img src="img/DE.png" width="500">
+    
