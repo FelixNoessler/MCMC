@@ -1,0 +1,163 @@
+---
+title: "Simple State Space Model - Only Filtering"
+engine: julia
+bibliography: lit.bib
+format:
+    html:
+        toc: true
+        number-sections: true
+---
+
+
+```{dot}
+//| fig-width: 7
+//| label: fig-hmm
+//| fig-cap: "Forward algorithm for a hidden markov model."
+digraph HMM {
+    node [shape=circle, style=filled, width=0.8];
+    
+    S1 [label="s(t-1)", fillcolor=white];
+    S2 [label="s(t)", fillcolor=white];
+    S3 [label="s(t+1)", fillcolor=white];
+    Send [label="s(T)", fillcolor=white];
+
+    Xstart [style=invis];
+    X0[label="x(0)", fillcolor=lightblue]
+    X1 [label="x(t-1)", fillcolor=lightblue];
+    X2 [label="x(t)", fillcolor=lightblue];
+    X3 [label="x(t+1)", fillcolor=lightblue];
+    Xend [label="x(T)", fillcolor=lightblue];
+
+    Y1 [label="y(t-1)", fillcolor=salmon];
+    Y2 [label="y(t)", fillcolor=salmon];
+    Y3 [label="y(t+1)", fillcolor=salmon];
+    Yend [label="y(T)", fillcolor=salmon];
+
+    S1 -> X1 [label = "εₜ₋₁"];
+    S2 -> X2;
+    S3 -> X3;
+    Send -> Xend;
+
+    Xstart -> X0 [label="p(x₀)"];
+    X0 -> S1 [label="                                       ", style=dashed];  
+    X1 -> S2 [label = "p(xₜ | xₜ₋₁)"];
+    X2 -> S3;
+    X3 -> Send [label="                                       ", style=dashed];
+
+    X1 -> Y1  [label = "ηₜ₋₁"];
+    X2 -> Y2 [label="p(yₜ | xₜ)" ];
+    X3 -> Y3; 
+    Xend -> Yend;
+
+    { rank=same; S1; S2; S3; Send; }
+    { rank=same; Xstart; X0; X1; X2; X3; Xend; }
+    { rank=same; Y1; Y2; Y3; Yend; }
+}
+```
+
+
+- $s(t)$: state that is modelled with a process-based model at time $t$
+- $x(t)$: true hidden state at time $t$
+- $y(t)$: observation at time $t$
+
+- $p(x(t) | x(t-1))$: transition probability between the true states
+- $p(y(t) | x(t))$: observation probability
+- $p(x₀)$: initial state of the true states
+- $εₜ₋₁$: process error
+- $ηₜ₋₁$: observation error
+
+
+## Load packages and Makie theme
+```{julia}
+import Random
+import StatsBase
+
+using CairoMakie
+using Distributions
+using Statistics
+
+set_theme!(
+    fontsize = 18,
+    Axis = (; xgridvisible = false, ygridvisible = false,
+            topspinevisible = false, rightspinevisible = false),
+    Legend = (; framevisible = false))
+```
+
+## Generate some data
+
+```{julia}
+# Random.seed!(123)
+
+σ_p = 1.0
+σ_o = 5.0
+β = 1.0
+α = 1.0
+z₀ = 5.0
+ε_t_dist = Normal(0, σ_p)
+η_t_dist = Normal(0, σ_o)
+
+ts = 1:50
+z = Array{Float64}(undef, length(ts))
+y = Array{Float64}(undef, length(ts))
+
+for t in ts
+    z_lastt = t == 1 ? z₀ : z[t-1]
+
+    ε_t = rand(ε_t_dist)
+    z[t] = β * z_lastt + ε_t
+    
+    η_t = rand(η_t_dist)    
+    y[t] = α * z[t] + η_t
+end
+
+let
+    fig = Figure(size = (900, 400))
+    ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "value")
+    scatterlines!(ts, z, color = :blue, label = "state: z")
+    scatterlines!(ts, y, color = :red, label = "observations: y", linestyle = :dash)
+    Legend(fig[1, 2], ax)
+    fig
+end
+```
+
+## Find state values
+
+```{julia}	
+num_particles = 200
+prior_dist = truncated(Normal(0, 50); )
+log_prior(z) = logpdf(prior_dist, z)
+log_likelihood(y, z) = logpdf(Normal(α * z, σ_o), y)
+calc_weights(y, z) = log_likelihood.(y, z)
+
+particles = rand(prior_dist, num_particles)
+particle_mat = zeros(length(ts), num_particles)
+ll = zeros(length(ts))
+
+for t in ts
+    weights = calc_weights(y[t], particles)
+    max_weight = maximum(weights)
+    scaled_weights = exp.(weights .- max_weight)
+    ll[t] = mean(weights)
+
+    indices = sample(1:num_particles, StatsBase.Weights(scaled_weights), num_particles; replace = true)
+    particles = particles[indices]
+    particle_mat[t, :] = particles
+    particles = β .* particles .+ rand(ε_t_dist, num_particles)
+end
+
+let
+    fig = Figure(size = (900, 400))
+    ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "value")
+    for t in ts
+        scatter!(fill(t, num_particles), particle_mat[t, :], 
+            color = (:black, 0.05), 
+            label = t == 1 ? "particles" : nothing)
+    end
+    scatterlines!(ts, z, color = :blue, label = "state: z")
+    scatterlines!(ts, y, color = :red, label = "observations: y", linestyle = :dash)
+   
+    Legend(fig[1, 2], ax)
+    fig
+end
+
+```

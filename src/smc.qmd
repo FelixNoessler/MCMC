@@ -1,0 +1,114 @@
+---
+title: "Sequential monte carlo"
+engine: julia
+bibliography: lit.bib
+format:
+    html:
+        toc: true
+        number-sections: true
+---
+
+## Load packages and Makie theme
+```{julia}
+import Random
+import StatsBase
+
+using CairoMakie
+using Distributions
+using Statistics
+
+set_theme!(
+    fontsize = 18,
+    Axis = (; xgridvisible = false, ygridvisible = false,
+            topspinevisible = false, rightspinevisible = false),
+    Legend = (; framevisible = false))
+```
+
+
+# First example
+## Generate some data
+
+```{julia}
+Random.seed!(123)
+
+true_μ = 20
+true_σ = 5
+true_dist = Normal(true_μ, true_σ)
+y = rand(true_dist, 100)
+
+density(y)
+```
+
+## Define the model
+
+```{julia}
+prior_dists = (;
+    μ = Normal(0, 10),
+    σ = truncated(Normal(0, 10), lower=0)
+)
+
+function log_likelihood(θ, y)
+    μ, σ = θ
+    return sum(logpdf(Normal(μ, σ), y))
+end
+
+function log_prior(θ)
+    μ, σ = θ
+    return logpdf(prior_dists.μ, μ) + logpdf(prior_dists.σ, σ)
+end
+
+function sample_prior(prior_dists, n)
+    μ = rand(prior_dists.μ, n)
+    σ = rand(prior_dists.σ, n)
+    return [μ σ]
+end
+```
+
+## Sampling
+
+```{julia}
+function SMC(y, prior_dists, num_particles, num_iterations)
+    particles = sample_prior(prior_dists, num_particles)
+    
+    for iter in 1:num_iterations
+        log_weights = [log_likelihood(p, y) + log_prior(p) for p in eachrow(particles)]
+        weights = exp.(log_weights)
+        
+        # Resample particles based on weights
+        indices = sample(1:num_particles, StatsBase.Weights(weights), num_particles; replace = true)
+        particles = particles[indices, :]
+        
+        # Move particles 
+        proposal_dist = (Normal(0, 0.5), Normal(0, 0.5))
+        for i in 1:num_particles
+            μ_new = particles[i, 1] + rand(proposal_dist[1])
+            σ_new = particles[i, 2] + rand(proposal_dist[2])
+            particles[i, :] = [μ_new, σ_new]
+        end
+    end
+    
+    return particles
+end
+
+num_particles = 2000
+num_iterations = 20
+posterior_samples = SMC(y, prior_dists, num_particles, num_iterations)
+
+let
+    fig = Figure(size = (800, 600))
+    Axis(fig[1, 1]; xlabel = "μ", ylabel = "σ")
+    scatter!(posterior_samples[:, 1], posterior_samples[:, 2], 
+            markersize = 10, color = (:black, 0.4))
+    
+    vlines!(true_μ, color = :red, linewidth = 2, label = "true parameters\nμ and σ")
+    hlines!(true_σ, color = :red, linewidth = 2)
+
+    vlines!(mean(y), color = :orange, linewidth = 2, label = "sampling mean\nand std")
+    hlines!(std(y), color = :orange, linewidth = 2)
+
+    axislegend()
+
+    fig
+end
+
+```
