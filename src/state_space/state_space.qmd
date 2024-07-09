@@ -33,7 +33,7 @@ digraph HMM {
     Y3 [label="y(t+1)", fillcolor=salmon];
     Yend [label="y(T)", fillcolor=salmon];
 
-    S1 -> X1 [label = "σₚ,ₜ₋₁"];
+    S1 -> X1 [label = "εₜ₋₁"];
     S2 -> X2;
     S3 -> X3;
     Send -> Xend;
@@ -44,7 +44,7 @@ digraph HMM {
     X2 -> S3;
     X3 -> Send [label="                                       ", style=dashed];
 
-    X1 -> Y1  [label = "σₒ,ₜ₋₁"];
+    X1 -> Y1  [label = "ηₜ₋₁"];
     X2 -> Y2 [label="p(yₜ | xₜ)" ];
     X3 -> Y3; 
     Xend -> Yend;
@@ -63,8 +63,8 @@ digraph HMM {
 - $p(x(t) | x(t-1))$: transition probability between the true states
 - $p(y(t) | x(t))$: observation probability
 - $p(x₀)$: initial state of the true states
-- $σₚ$: process error
-- $σₒ$: observation error
+- $ε$: process error with distribution $ε_t \sim \mathcal{N}(0, σ_p)$
+- $η$: observation error with distribution $η_t \sim \mathcal{N}(0, σ_o)$
 
 
 
@@ -105,8 +105,21 @@ struct ModelContainerMCMC{T1, T2, T3, T4}
     transform::T4
 end
 
+function sample_prior(prob; transform = true)
+    @unpack prior_distributions = prob
+    
+    ks = keys(prior_distributions)
+    x = Float64[]
+    for k in ks
+        push!(x, rand(prior_distributions[k]))
+    end
+    θ = (; zip(ks, x)...)    
+
+    return transform ? inverse(prob.transform, θ) : θ
+end
+
 function sample_posterior(dat, prob)
-    nsamples, nchains, nparameter = size(dat)
+    nsamples, nparameter, nchains = size(dat)
     
     vals = dat[sample(1:nsamples), :, sample(1:nchains)]
     ks = collect(keys(prob.prior_distributions))
@@ -205,20 +218,6 @@ function (prob::ModelContainerMCMC)(θ)
     return llikelihood + lprior
 end
 
-function sample_prior(prob; transform = true)
-    @unpack prior_distributions = prob
-    
-    ks = keys(prior_distributions)
-    x = Float64[]
-    for k in ks
-        push!(x, rand(prior_distributions[k]))
-    end
-    θ = (; zip(ks, x)...)    
-
-    return transform ? inverse(prob.transform, θ) : θ
-end
-
-
 problem_no_process_error = no_process_error(true_solution.y, true_solution.ts);
 ℓ_no_process_error = TransformedLogDensity(problem_no_process_error.transform, problem_no_process_error)
 lposterior_no_process_error(x) = LogDensityProblems.logdensity(ℓ_no_process_error, x)
@@ -274,9 +273,6 @@ function retrodict_no_process_error(dat, prob)
     x_retro
 end
 
-
-
-
 let
     fig = Figure(size = (1100, 600))
     ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "population size")
@@ -296,42 +292,352 @@ let
 end
 ```
 
-# Modeling the process error without explicit state space representation
+# Modelling the process error without explicit state space representation
 
 ## Build model
 
 ```{julia}
-function ModelScratchMCMC(y, ts)
+function model_with_process_error(y, ts)
     prior_dists = (;
-        β = Uniform(0, 1),
-        σ_p = truncated(Normal(0.0, 1.0); lower = 0),
+        r = Uniform(0, 1),
+        K = truncated(Normal(15.0, 10.0); lower = 0),
         σ_o = truncated(Normal(0.0, 1.0); lower = 0),
+        σ_p = truncated(Normal(0.0, 1.0); lower = 0),
         x₀ = truncated(Normal(0.0, 10.0); lower = 0))
-    transform = as((β = as𝕀, σ_p = asℝ₊, σ_o = asℝ₊, x₀ = asℝ₊))
+    transform = as((r = as𝕀, K = asℝ₊, σ_o = asℝ₊, σ_p = asℝ₊, x₀ = asℝ₊))
 
-    ModelScratchMCMC(y, ts, prior_dists, transform)
+    ModelContainerMCMC(y, ts, prior_dists, transform)
 end
 
-function (problem::ModelScratchMCMC)(θ)
-    @unpack β, σ_p, σ_o, x₀ = θ
-    @unpack y, ts, prior_distributions = problem
+function (prob::ModelContainerMCMC)(θ)
+    @unpack r, K, σ_o, σ_p, x₀ = θ
+    @unpack y, ts, prior_distributions = prob
 
     lprior = 0.0
-    lprior += logpdf(prior_distributions[:β], β)
-    lprior += logpdf(prior_distributions[:σ_p], σ_o)
-    lprior += logpdf(prior_distributions[:σ_p], σ_o)
-    lprior += logpdf(prior_distributions[:x₀], x₀)
+    for k in keys(prior_distributions)
+        lprior += logpdf(prior_distributions[k], θ[k])
+    end
 
     llikelihood = 0.0
 
     if lprior > -Inf
         x = x₀
         for t in ts
-            x = β * x + rand(Normal(0, σ_p))
+            x = (1 + r *(1 - x/K))* x + rand(Normal(0, σ_p))
             llikelihood += logpdf(Normal(x, σ_o), y[t])
         end
     end
 
     return llikelihood + lprior
+end
+
+problem_with_process_error = model_with_process_error(true_solution.y, true_solution.ts);
+ℓ_with_process_error = TransformedLogDensity(problem_with_process_error.transform, 
+                                             problem_with_process_error)
+lposterior_with_process_error(x) = LogDensityProblems.logdensity(ℓ_with_process_error, x)
+
+# check that we can sample from prior and calculate the log posterior
+lposterior_with_process_error(sample_prior(problem_with_process_error))
+```
+
+## Run MCMC
+```{julia}
+post_with_process_error = let
+    nsamples = 100_000; L = 2
+    nchains = 4
+
+    post_objs = []
+    for i in 1:nchains
+        raw_post_chain = adaptive_rwm(sample_prior(problem_with_process_error), 
+            lposterior_with_process_error, nsamples; L, b = nsamples ÷ 2, thin = 100);
+
+        post_chain = mapslices(x -> collect(transform(problem_with_process_error.transform, x)),
+                            raw_post_chain.X, dims = 1)
+        push!(post_objs, post_chain')
+    end
+    cat(post_objs..., dims = 3)
+end;
+```
+
+
+## Analyse results
+```{julia}
+chn_with_process_error = MCMCChains.Chains(post_with_process_error, 
+    collect(keys(problem_with_process_error.prior_distributions)))
+```
+
+```{julia}
+StatsPlots.plot(chn_with_process_error)
+```
+
+```{julia}
+PairPlots.pairplot(chn_with_process_error) # PairPlots.Truth(true_solution.parameter)
+```
+
+# Modelling the process error without explicit state space representation - One step ahead prediction
+
+## Build model
+
+```{julia}
+function model_with_process_error(y, ts)
+    prior_dists = (;
+        r = Uniform(0, 1),
+        K = truncated(Normal(15.0, 10.0); lower = 0),
+        σ_o = truncated(Normal(0.0, 1.0); lower = 0),
+        σ_p = truncated(Normal(0.0, 1.0); lower = 0),
+        x₀ = truncated(Normal(0.0, 10.0); lower = 0))
+    transform = as((r = as𝕀, K = asℝ₊, σ_o = asℝ₊, σ_p = asℝ₊, x₀ = asℝ₊))
+
+    ModelContainerMCMC(y, ts, prior_dists, transform)
+end
+
+function (prob::ModelContainerMCMC)(θ)
+    @unpack r, K, σ_o, σ_p, x₀ = θ
+    @unpack y, ts, prior_distributions = prob
+
+    lprior = 0.0
+    for k in keys(prior_distributions)
+        lprior += logpdf(prior_distributions[k], θ[k])
+    end
+
+    llikelihood = 0.0
+
+    if lprior > -Inf
+        for t in ts
+            x = t == 1 ? x₀ : y[t-1]
+            x = (1 + r *(1 - x/K))* x + rand(Normal(0, σ_p))
+            llikelihood += logpdf(Normal(x, σ_o), y[t])
+        end
+    end
+
+    return llikelihood + lprior
+end
+
+problem_with_process_error = model_with_process_error(true_solution.y, true_solution.ts);
+ℓ_with_process_error = TransformedLogDensity(problem_with_process_error.transform, 
+                                             problem_with_process_error)
+lposterior_with_process_error(x) = LogDensityProblems.logdensity(ℓ_with_process_error, x)
+
+# check that we can sample from prior and calculate the log posterior
+lposterior_with_process_error(sample_prior(problem_with_process_error))
+```
+
+## Run MCMC
+```{julia}
+post_with_process_error = let
+    nsamples = 100_000; L = 2
+    nchains = 4
+
+    post_objs = []
+    for i in 1:nchains
+        raw_post_chain = adaptive_rwm(sample_prior(problem_with_process_error), 
+            lposterior_with_process_error, nsamples; L, b = nsamples ÷ 2, thin = 100);
+
+        post_chain = mapslices(x -> collect(transform(problem_with_process_error.transform, x)),
+                            raw_post_chain.X, dims = 1)
+        push!(post_objs, post_chain')
+    end
+    cat(post_objs..., dims = 3)
+end;
+```
+
+
+## Analyse results
+```{julia}
+chn_with_process_error = MCMCChains.Chains(post_with_process_error, 
+    collect(keys(problem_with_process_error.prior_distributions)))
+```
+
+```{julia}
+StatsPlots.plot(chn_with_process_error)
+```
+
+```{julia}
+PairPlots.pairplot(chn_with_process_error) # PairPlots.Truth(true_solution.parameter)
+```
+
+## Retrodiction
+
+```{julia}
+
+function retrodict_with_process_error(dat, prob; process_error = false)
+    @unpack σ_p, r, K, x₀ = sample_posterior(dat, prob)
+    x = x₀
+    x_retro = Array{Float64}(undef, length(true_solution.ts))
+    for t in true_solution.ts
+        ε_t = process_error ? rand(Normal(0, σ_p)) : 0.0
+        x = (1 + r *(1 - x/K))* x + ε_t
+        x_retro[t] = x  
+    end
+    x_retro
+end
+
+let
+    fig = Figure(size = (1100, 800))
+    
+    ax = Axis(fig[1, 1]; title = "Without process error")
+    scatter!(true_solution.ts, true_solution.y, color = :red, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    lines!(true_solution.ts, true_solution.s, color = :grey, label = "process-model state: s")
+    for i in 1:100
+        x_pred = retrodict_with_process_error(post_with_process_error, problem_with_process_error)
+        lines!(true_solution.ts, x_pred, color = :green, alpha = 0.1, 
+               label = i == 1 ? "fitted (draws from posterior)" : nothing)
+    end
+    
+    Axis(fig[2, 1]; xlabel = "time", title = "With process error")
+    scatter!(true_solution.ts, true_solution.y, color = :red)
+    lines!(true_solution.ts, true_solution.x, color = :blue)
+    lines!(true_solution.ts, true_solution.s, color = :grey)
+    for i in 1:100
+        x_pred = retrodict_with_process_error(post_with_process_error, 
+                                              problem_with_process_error; process_error = true)
+        lines!(true_solution.ts, x_pred, color = :green, alpha = 0.1, 
+               label = i == 1 ? "fitted (draws from posterior)" : nothing)
+    end
+    
+    Label(fig[1:2, 0], "Population size"; rotation = pi/2)
+    Legend(fig[1:2, 2], ax)
+    fig
+end
+```
+
+# Real State Space Model
+
+## Build the model
+
+```{julia}
+mutable struct Particle
+    s::Float64
+    Particle() = new(0.0)
+end
+
+mutable struct ModelParam
+    r::Float64
+    K::Float64
+    σ_p::Float64
+    σ_o::Float64
+    x₀::Float64
+end
+struct ModelContainerPMCMC
+    par::ModelParam
+    y::Vector{Float64}
+    ModelContainerPMCMC() = new(ModelParam(0.5, 10.0, 1.0, 1.0, 2.0), true_solution.y)
+end
+
+function transition!(x, rng, k, x_prev, scratch)
+    @unpack x₀, r, K, σ_p = scratch.par
+    if k == 1
+        x.s = x₀ + x₀ * r * (1 - x₀/K) + rand(rng, Normal(0, σ_p))
+    else
+        x.s = x_prev.s + x_prev.s * r * (1 - x_prev.s/K) + rand(rng, Normal(0, σ_p))
+    end
+end
+
+function log_potential(k, x, scratch)
+    logpdf(Normal(x.s, scratch.par.σ_o), scratch.y[k])
+end
+
+inv_logit(x) = exp(x)/(1+exp(x))
+function set_param!(scratch, θ)
+    scratch.par.r = inv_logit(θ.logit_r)
+    scratch.par.K = inv_logit(θ.log_K)
+    scratch.par.σ_p = exp(θ.log_sigma_p)
+    scratch.par.σ_o = exp(θ.log_sigma_o)
+    scratch.par.x₀ = exp(θ.log_x₀)
+end
+
+function prior(theta)
+    (logpdf(Normal(0.0, 2.0), theta.logit_r) +
+     logpdf(Normal(0.0, 2.5), theta.log_K) +
+     logpdf(Normal(-1.0, 2.0), theta.log_sigma_p) +
+     logpdf(Normal(-1.0, 2.0), theta.log_sigma_o) +
+     logpdf(Normal(0.0, 2.0), theta.log_x₀))
+end
+```
+
+## Run MCMC
+
+```{julia}
+T = length(true_solution.y)
+nparticles = 25
+nsamples = 50_000
+
+theta0 = LVector(logit_r = 0.0, log_K = 2.0, log_sigma_p = 0.0, log_sigma_o = 0.0, log_x₀ = 0.0)
+
+state = SMCState(T, nparticles, Particle, ModelContainerPMCMC, set_param!, log_potential, transition!);
+
+out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 100,
+                    save_paths = true, b = nsamples ÷ 2);
+```
+
+```{julia}
+chn_pmcmc = let
+    θ = deepcopy(out.Theta)
+    θ[1, :] = inv_logit.(out.Theta[1, :])
+    θ[2, :] = exp.(out.Theta[2, :])
+    θ[3, :] = exp.(out.Theta[3, :])
+    θ[4, :] = exp.(out.Theta[4, :])
+    θ[5, :] = exp.(out.Theta[5, :])
+
+    MCMCChains.Chains(θ', collect(fieldnames(ModelParam)))
+end
+```
+
+
+```{julia}
+StatsPlots.plot(chn_pmcmc)
+```
+
+
+```{julia}
+PairPlots.pairplot(chn_pmcmc)
+```
+
+## Retrodiction
+
+```{julia}
+function retrodict_pmcmc(dat)
+    r, K, σ_o, x₀ = vec(Array(sample(dat, 1)))
+    
+    x = x₀
+    x_retro = Array{Float64}(undef, length(true_solution.ts))
+    for t in true_solution.ts
+        x = (1 + r *(1 - x/K))* x  
+        x_retro[t] = x  
+    end
+    x_retro
+end
+
+let
+    S = [out.X[j][i].s for i = 1:length(out.X[1]), j = 1:length(out.X)]
+    q95 = mapslices(x -> quantile(x, [0.025, 0.975]), S, dims=2)
+    q5 = mapslices(x -> quantile(x, [0.25, 0.75]), S, dims=2)
+    q_median = mapslices(median, S, dims=2)
+
+    fig = Figure(size = (1100, 800))
+    ax = Axis(fig[1, 1];)
+
+    band!(true_solution.ts, q95[:, 1], q95[:, 2], color = (:black, 0.2), label = "95% credible interval")
+    band!(true_solution.ts, q5[:, 1], q5[:, 2], color = (:black, 0.5), label = "50% credible interval")
+    lines!(true_solution.ts, q_median[:, 1], color = :black, label = "median")
+
+    scatter!(true_solution.ts, true_solution.y, color = :red, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    lines!(true_solution.ts, true_solution.s, color = :grey, label = "process-model state: s")
+    
+    Axis(fig[2, 1]; xlabel = "time")
+    lines!(true_solution.ts, true_solution.x, color = :blue)
+    lines!(true_solution.ts, true_solution.s, color = :grey)
+        
+    for i in 1:100
+        x_pred = retrodict_pmcmc(chn_pmcmc)
+        lines!(true_solution.ts, x_pred, color = :green, alpha = 0.1, 
+               label = i == 1 ? "fitted (draws from posterior)" : nothing)
+    end
+    
+    Legend(fig[1:2, 2], ax)
+    Label(fig[1:2, 0], "Population size"; rotation = pi/2)
+    fig
 end
 ```
