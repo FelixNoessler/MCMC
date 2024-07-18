@@ -1,0 +1,233 @@
+---
+title: "Random walk Metropolis"
+engine: julia
+bibliography: lit.bib
+format:
+    html:
+        toc: true
+        number-sections: true
+---
+
+$$ 
+ \begin{align}
+         &p(θ | data) \propto p(data | θ) \cdot p(θ) \\
+         &r_{M} = min\left(1,  \frac{p(θ_{t+1} | data)}{p(θ_{t} | data)}\right)     
+\end{align} 
+$$
+
+# Setup:  
+
+```{julia}
+using CairoMakie
+using Distributions
+using LinearAlgebra
+using MCMCChains
+using PairPlots
+using Statistics
+
+import StatsPlots
+
+set_theme!(
+    fontsize=18,
+    Axis=(xgridvisible=false, ygridvisible=false,
+          topspinevisible=false, rightspinevisible=false),
+)
+```
+
+# Generate data
+
+```{julia}
+μ, σ = 5, 2
+y = rand(Normal(μ, σ), 500)
+hist(y)
+```
+
+
+# Define Likelihood and Prior
+
+```{julia}
+propσ = [0.01, 0.001]
+prior_μ = truncated(Normal(0, 3), -10, 10)
+prior_σ = truncated(Normal(0, 1), 0, 10)
+
+function posterior(θ)
+    ## prior 
+    log_prior = logpdf(prior_μ, θ[1])
+    log_prior += logpdf(prior_σ, θ[2])
+    if log_prior == -Inf
+        return -Inf
+    end
+        
+    ## likelihood
+    log_likelihood = 0
+    for i in eachindex(y)
+        log_likelihood += logpdf(Normal(θ[1], θ[2]), y[i])
+    end
+    
+    ## unnormalized posterior
+    p = log_likelihood + log_prior
+    
+    return p 
+end
+```
+
+# Run MCMC
+
+```{julia}
+n_samples = 20_000
+burnin = n_samples ÷ 2
+nchains = 6
+nparameter = 2
+accepted_θ = zeros(nchains, nparameter, n_samples)
+accepted = zeros(nchains)
+θ = zeros(nparameter)
+
+for n in 1:nchains
+    θ[1] = rand(prior_μ)
+    θ[2] = rand(prior_σ)
+    post = posterior(θ)
+
+    for k in 1:n_samples
+        
+        ## new proposal
+        proposal_dist = MvNormal(θ, Diagonal(propσ))
+        θstar = rand(proposal_dist) 
+        
+        ## evaluate prior + likelihood
+        poststar = posterior(θstar)
+        
+        ## M-H ratio
+        ratio = poststar - post
+
+        if log(rand()) < min(ratio, 1)
+            accepted[n] += 1
+            θ = θstar
+            post = poststar
+        end
+        
+        accepted_θ[n, :, k] = θ
+    end
+end
+
+
+accepted / n_samples
+
+```
+
+
+# Convergence
+
+```{julia}
+chn = Chains(permutedims(accepted_θ, (3,2,1)), [:μ, :σ])
+```
+
+# Trace plot and densities of the MCMC samples
+
+
+## With burnin
+```{julia}
+function trace_plot(; burnin)
+    fig = Figure()
+    
+    titles = ["μ", "σ"]
+    for i in 1:2
+        Axis(fig[i,1]; title = titles[i])
+        
+        for n in 1:nchains
+            lines!((burnin:n_samples) .- burnin, accepted_θ[n, i, burnin:end];
+                color=(Makie.wong_colors()[n], 0.5))
+        end
+        
+        Axis(fig[i,2])
+        for n in 1:nchains
+            density!(accepted_θ[n, i, burnin:end];
+                    bins=20, 
+                    color= (Makie.wong_colors()[n], 0.1),
+                    strokecolor = (Makie.wong_colors()[n], 1),
+                    strokewidth = 2, strokearound = false)
+        end
+    
+    end
+    rowgap!(fig.layout, 1, 5)
+    fig
+end
+
+trace_plot(; burnin = 1) # keep all samples
+```
+
+
+## Without burnin
+```{julia}
+trace_plot(; burnin) # remove half of the samples
+
+```
+
+### Or use the function fromm `StatsPlots`
+
+```{julia}
+StatsPlots.plot(chn[burnin:end, :, :])
+```
+
+# Pair plot
+
+## With burnin
+```{julia}
+pairplot(chn)
+```
+
+## Without burnin
+
+```{julia}
+pairplot(chn[burnin:end, :, :])
+```
+
+# Posterior predictive check   
+
+```{julia}
+begin
+    fig = Figure()
+    
+    Axis(fig[1,1]; title="Posterior predictive check")
+
+    μs = vec(accepted_θ[:, 1, burnin:end])
+    σs = vec(accepted_θ[:, 2, burnin:end])
+    
+    npredsamples = 500
+    ns = sample(1:length(μs), npredsamples;
+                replace=false) 
+    
+    minx, maxx = minimum(y)-4, maximum(y)+4
+    nxvals = 200
+    xvals = LinRange(minx, maxx, nxvals)
+    pred = zeros(npredsamples, nxvals)
+    
+    ## calculate and plot each predictive sample
+    for i in eachindex(ns)
+        μ = μs[ns[i]]
+        σ = σs[ns[i]]
+        post_dist = Normal(μ,σ)
+        
+        yvals = pdf.(post_dist, xvals)
+        pred[i, :] = yvals
+        
+        lines!(xvals, yvals;
+                color=(:grey, 0.1))
+    end
+    
+    ## mean of the predicted densities
+    meany = vec(mean(pred, dims=1))
+    lines!(xvals, meany;
+            linewidth=3,
+            color=(:red, 0.8))
+    
+    ## histogram of the data
+    hist!(y; 
+        normalization=:pdf,
+        bins=25,
+        color=(:blue, 0.3),
+        strokecolor=(:white, 0.5),
+        strokewidth=1)
+    
+    fig
+end
+```

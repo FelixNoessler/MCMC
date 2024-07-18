@@ -1,0 +1,44 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Bayesian algorithms"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+      
+      
+  sidebar:
+    style: "floating"
+    search: true
+    contents:
+        - section: "General methods"
+          contents:
+            - href: src/RWM.qmd
+              text: Random walk Metropolis
+            - href: src/RWM_ode.qmd
+              text: RWM on ODE 
+            - href: src/DE.qmd
+              text: DE MCMC
+            - href: src/SMC.qmd
+              text: SMC
+        - section: "State Space Models"
+          contents:
+            - href: src/particle_filter.qmd
+              text: Particle filter
+            - href: src/state_space_mcmc.qmd
+              text: MCMC
+            - href: src/pMCMC_logistic_growth.qmd
+              text: pMCMC
+          
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true
+
+
+

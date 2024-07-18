@@ -1,4 +1,13 @@
-# Differential Evolution MCMC (DE)
+---
+title: " Differential Evolution MCMC (DE)"
+engine: julia
+bibliography: lit.bib
+format:
+    html:
+        toc: true
+        number-sections: true
+---
+
 
 This is an implementation of the Differential Evolution MCMC algorithm and, it is based on:
 
@@ -6,50 +15,56 @@ Braak, C.J.F.T. A Markov Chain Monte Carlo version of the genetic algorithm Diff
 
 The algorithm is a MCMC algorithm that uses a population of chains to explore the parameter space. There is no need to tune the proposal distribution and no gradients of the posterior density are calculated to generate new proposals.
 
-Loading packages
+# Loading packages
 
-````julia
+```{julia}
 using CairoMakie
 using Distributions
 using DimensionalData
 using LinearAlgebra
 import Random
-````
 
-Generate some data from a multivariate normal distribution without correlations
+set_theme!(
+    fontsize=18,
+    Axis=(xgridvisible=false, ygridvisible=false,
+          topspinevisible=false, rightspinevisible=false),
+)
+```
+
+
+# Generate some data from a multivariate normal distribution without correlations
 
 The following four parameters needs to be estimated: μ₁, μ₂, σ₁, σ₂ n
 
-````julia
+```{julia}
 Random.seed!(1234)
 μ = [3.0, 10.0]
 σ = [15.0, 20.0]
 real_dist = MvNormal(μ, σ)
 empirical_data = rand(real_dist, 200)
-fig, ax = scatter(empirical_data[1, :], empirical_data[2, :]; color = (:blue, 0.6), markersize = 25)
-save("img/DE_data.png", fig)
-````
+scatter(empirical_data[1, :], empirical_data[2, :]; color = (:blue, 0.6), markersize = 25)
+```
 
-![](../img/DE_data.png)
 
-A function to sample from the prior distributions
+# A function to sample from the prior distributions
 
-````julia
+```{julia}
 function prior_sample!(x, prior_dists)
     for i in eachindex(prior_dists)
         x[i] = rand(prior_dists[i])
     end
     return nothing
 end
-````
+```
 
-Calculate the unnormalized posterior ("fitness") $\rightarrow$ prior + likelihood:
 
-````julia
+# Calculate the unnormalized posterior ("fitness") $\rightarrow$ prior + likelihood:
+
+```{julia}
 function unnormalized_posterior(x, data, prior_dists)
     μ₁, μ₂, σ₁, σ₂ = x
 
-    # -------- prior
+    ## -------- prior
     if σ₁ < 0 || σ₂ < 0
         return -Inf
     end
@@ -59,7 +74,7 @@ function unnormalized_posterior(x, data, prior_dists)
         prior += logpdf(prior_dists[i], x[i])
     end
 
-    # -------- likelihood
+    ## -------- likelihood
     dist = MvNormal([μ₁, μ₂], [σ₁, σ₂])
     ll = 0.0
     for i in axes(data, 2)
@@ -68,11 +83,11 @@ function unnormalized_posterior(x, data, prior_dists)
     end
     return prior + ll
 end
-````
+```
 
-Function to run the differential evolution MCMC algorithm
+# Function to run the differential evolution MCMC algorithm
 
-````julia
+```{julia}
 function DE_MCMC(; external_chains = 4, draws = 2000,
                    d = 4, N = 3*d,
                    γ = 2.38 / sqrt(2*d), b = 1e-4)
@@ -85,16 +100,16 @@ function DE_MCMC(; external_chains = 4, draws = 2000,
 
     for ext_n in 1:external_chains
 
-        # -------- initial population from prior
+        ## -------- initial population from prior
         for i in axes(X, 1)
             z = @view X[i, :]
             prior_sample!(z, prior_dists)
         end
 
-        # -------- MCMC
+        ## -------- MCMC
         for draw in 1:draws
             for i in 1:N
-                # -------- sample r1, r2 from 1:N without i
+                ## -------- sample r1, r2 from 1:N without i
                 r1 = rand(1:N)
                 r2 = rand(1:N)
 
@@ -106,7 +121,7 @@ function DE_MCMC(; external_chains = 4, draws = 2000,
                     r2 = rand(1:N)
                 end
 
-                # -------- proposal
+                ## -------- proposal
                 for j in 1:d
                     e = rand(Normal(0, b))
                     xₚ[j] = X[i, j] + γ * (X[r1, j] - X[r2, j]) + e
@@ -116,7 +131,7 @@ function DE_MCMC(; external_chains = 4, draws = 2000,
                 old = unnormalized_posterior(X[i, :], empirical_data, prior_dists)
                 r = prop - old
 
-                # -------- accept or reject
+                ## -------- accept or reject
                 if log(rand()) < min(r, 1)
                     X[i, :] .= xₚ
                 end
@@ -133,19 +148,14 @@ function DE_MCMC(; external_chains = 4, draws = 2000,
 
     return Y_dim
 end
-````
+```
 
-Plotting function
 
-````julia
-own_theme = Theme(
-    fontsize=18,
-    Axis=(xgridvisible=false, ygridvisible=false,
-          topspinevisible=false, rightspinevisible=false),
-)
-set_theme!(own_theme)
 
-function plot_mcmc(mcmc_obj, path)
+# Plotting function
+
+```{julia}
+function plot_mcmc(mcmc_obj)
     @show start_covergence = size(mcmc_obj, :draw) ÷ 2
     thin = 1
     @show sample_x = start_covergence:thin:size(mcmc_obj, :draw)
@@ -171,23 +181,27 @@ function plot_mcmc(mcmc_obj, path)
             end
         end
     end
-    save(path, fig)
-
+    
     fig
 end
-````
+```
 
-Run the algorithm
 
-````julia
+
+## Run the algorithm
+
+```{julia}
 Y = DE_MCMC(; external_chains = 4, draws = 2000);
-plot_mcmc(Y, "img/DE.png")
-````
+```
 
-**Results:**
+
+## Results
 
 The different colours in the trace plots represent the different (external) chains. For each chain, several internal chains were simulated and plotted here in the same colour.
-![](../img/DE.png)
+
+```{julia}
+plot_mcmc(Y)
+```
 
 ## Differential Evolution MCMC with fewer internal chains (DEz)
 
@@ -197,7 +211,7 @@ This implementation is based on, but does not use the snooker update:
 
 ter Braak, C.J.F., Vrugt, J.A. Differential Evolution Markov Chain with snooker updater and fewer chains. Stat Comput 18, 435–446 (2008). https://doi.org/10.1007/s11222-008-9104-9
 
-````julia
+```{julia}
 function DEz_MCMC(; external_chains = 4,
                   draws = 2000,
                   d = 4, N = 3,
@@ -233,7 +247,7 @@ function DEz_MCMC(; external_chains = 4,
         for draw in 1:draws
             for _ in 1:K
                 for i in 1:N
-                    # -------- sample r1, r2 from 1:M without i
+                    ## -------- sample r1, r2 from 1:M without i
                     r1 = rand(1:M)
                     r2 = rand(1:M)
 
@@ -245,7 +259,7 @@ function DEz_MCMC(; external_chains = 4,
                         r2 = rand(1:M)
                     end
 
-                    # -------- proposal
+                    ## -------- proposal
                     for j in 1:d
                         e = rand(Normal(0, b))
                         xₚ[j] = X[i, j] + γ * (Z[r1, j] - Z[r2, j]) + e
@@ -255,7 +269,7 @@ function DEz_MCMC(; external_chains = 4,
                     old = unnormalized_posterior(X[i, :], empirical_data, prior_dists)
                     r = prop - old
 
-                    # -------- accept or reject
+                    ## -------- accept or reject
                     if log(rand()) < min(r, 1)
                         X[i, :] .= xₚ
                     end
@@ -271,21 +285,16 @@ function DEz_MCMC(; external_chains = 4,
 
     return Y
 end
+```
 
+## Run the algorithm
+```{julia}
 Yz = DEz_MCMC();
-plot_mcmc(Yz, "img/DEz.png")
-````
+```
 
-**Results:**
 
-![](../img/DEz.png)
-
-````julia
-# to generate the Markdown file from the script:
-# import Literate; Literate.markdown("src/DE.jl", "md/"; flavor=Literate.CommonMarkFlavor(), execute=false)
-````
-
----
-
-*This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
+## Results
+```{julia}
+plot_mcmc(Yz)
+```
 

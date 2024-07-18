@@ -8,7 +8,6 @@ format:
         number-sections: true
 ---
 
-
 ```{dot}
 //| fig-width: 7
 //| label: fig-hmm
@@ -68,6 +67,7 @@ digraph HMM {
 
 
 ## Load packages and Makie theme
+
 ```{julia}
 import Random
 
@@ -96,8 +96,8 @@ Random.seed!(123)
 
 σ_p = 2.0
 σ_o = 3.0
-β = 0.9
-x₀ = 5.0
+β = 0.7
+x₀ = 50.0
 ε_t_dist = Normal(0, σ_p)
 η_t_dist = Normal(0, σ_o)
 
@@ -143,32 +143,29 @@ end
     weights::Weights{Float64, Float64, Vector{Float64}}
 end
     
-function particle_filter(θ, problem; num_particles = 130)
+function particle_filter(θ, problem; num_particles = 100)
     @unpack β, σ_p, σ_o, x₀ = θ
-    @unpack y, ts, samples_hidden_state = problem
-
-
+    @unpack y, ts = problem
+    
     particles = Particle(fill(x₀, num_particles), 
                          zeros(num_particles), 
                          Weights(ones(num_particles) / num_particles))
-
+    
     ll = zeros(length(ts))
     
     for t in ts
-        samples_hidden_state[t] = mean(particles.val)
-         
-        indices = sample(1:num_particles, particles.weights, num_particles; replace = true, ordered = true)
-        
-        
-        
+        problem.samples_hidden_state[t] = mean(particles.val, particles.weights)
+        indices = sample(1:num_particles, particles.weights, num_particles; 
+                         replace = true)
         particles.val .= particles.val[indices]
-  
+    
         particles.val .= β .* particles.val .+ rand(Normal(0.0, σ_p), num_particles)
-
+    
         particles.log_weights .= logpdf.(Normal.(particles.val, σ_o), y[t])
         
         l = exp.(particles.log_weights .- maximum(particles.log_weights))
         if any(isnan.(l) .|| isinf.(sum(l)))   
+            return -Inf
             particles.weights .= Weights(ones(num_particles) / num_particles)
         else
             particles.weights .= Weights(l)
@@ -184,10 +181,10 @@ end
 
 ## Define problem
 
-```{julia}	
+```{julia}
 my_priors = (;
     β = Normal(1, 0.2),
-    x₀ = truncated(Normal(0, 10); lower = 0),
+    x₀ = truncated(Normal(0, 100); lower = 0),
     σ_p = truncated(Normal(0, 1); lower = 0),
     σ_o = truncated(Normal(0, 1); lower = 0)
 )
@@ -225,7 +222,7 @@ function sample_prior(problem; inverse = true)
         push!(θ, rand(prior_dists[key]))
     end
     
-    p = (; zip(keys(prior_dists), θ)...)
+    @show p = (; zip(keys(prior_dists), θ)...)
 
     if inverse
         p = TransformVariables.inverse(problem.transformation, p)
@@ -296,7 +293,7 @@ end
 ## Run MCMC
 
 ```{julia}
-raw_post, post, hidden_state = metroplis_sampler(problem; nsamples = 50000, propσ = [0.1, 0.1, 0.1, 0.1]);
+raw_post, post, hidden_state = metroplis_sampler(problem; nsamples = 5000, propσ = [0.1, 0.1, 0.1, 0.1]);
 ```
 
 ```{julia}
@@ -368,7 +365,7 @@ end
 
 function sample_hidden_state(data)
     nchains, nsamples, nts = size(data)
-    samples_start = Int(round(nsamples * 0.5))
+    samples_start = Int(round(nsamples * 0.8))
     
     return data[sample(1:nchains), sample(samples_start:nsamples), :]
 end
@@ -378,18 +375,18 @@ let
     fig = Figure(size = (900, 800))
   
     Axis(fig[1, 1]; xlabel = "time", ylabel = "value")
-    for i in 1:2
+    for i in 1:5
         x = sample_hidden_state(hidden_state)
-        scatter!(ts .- 4, x; color = (:black, 0.1))
+        scatter!(ts, x; color = (:black, 0.9))
     end
-    scatterlines!(ts, x, color = :blue, label = "true hidden state: x")
+    # scatterlines!(ts, x, color = :blue, label = "true hidden state: x")
 
     Axis(fig[2, 1]; xlabel = "time", ylabel = "value")
     for i in 1:20
         x = predict(post, problem)
         lines!(ts, x; color = (:black, 0.1))
     end
-    lines!(ts, s, color = :blue, label = "process-model state: s")
+    # lines!(ts, s, color = :blue, label = "process-model state: s")
 
 
     fig
