@@ -105,6 +105,16 @@ function transition!(x, rng, k, x_prev, scratch)
     end
 end
 
+# only for particle gibbs
+function log_transition(k, x_prev, x, scratch)
+    @unpack r, K, σ_p, x₀ = scratch.par
+    
+    old_x = k == 1 ? x₀ : x_prev.s
+    ε = x.s / old_x - 1 - r*(1 - old_x/K)
+    
+    return logpdf(Normal(0, σ_p), ε)
+end
+
 function log_potential(k, x, scratch)
     if x.s <= 0
         return -Inf
@@ -286,7 +296,7 @@ nsamples = 10_000
 
 post_pmcmc, hidden_state = let
     T = length(true_solution.y)
-    nparticles = 100
+    nparticles = 50
     nchains = 4
 
     post_objs = []
@@ -294,8 +304,11 @@ post_pmcmc, hidden_state = let
     for i in 1:nchains
         theta0 = sample_prior()
         state = SMCState(T, nparticles, Particle, ModelScratch, set_param!,
-                         log_potential, transition!);
-        out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 1,
+                         log_potential, transition!, log_transition);
+        # out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 1,
+        #                     save_paths = true, b = 0, show_progress = false);
+        
+        out = adaptive_pg(theta0, prior, state, nsamples; thin = 1,
                             save_paths = true, b = 0, show_progress = false);
 
         S = [out.X[j][i].s for i = 1:length(out.X[1]), j = 1:length(out.X)]
@@ -320,7 +333,7 @@ end;
 
 ```{julia}
 burnin = nsamples ÷ 3
-thin = 100
+thin = 50
 chn_pmcmc = MCMCChains.Chains(post_pmcmc[burnin:thin:end, :, :], collect(fieldnames(Param)))
 ```
 
