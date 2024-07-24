@@ -7,6 +7,58 @@
     "text": "About this site"
   },
   {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v3.html",
+    "href": "src/logistic_growth_MCMC_wo_states_v3.html",
+    "title": "Logistic growth - MCMC without modelling the hidden states v3",
+    "section": "",
+    "text": "Code\nimport Random\nimport StatsPlots\n\nusing AdaptiveMCMC\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing MCMCChains\nusing PairPlots\nusing ProtoStructs\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v3"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v3.html#rhat-and-estimated-sampling-size",
+    "href": "src/logistic_growth_MCMC_wo_states_v3.html#rhat-and-estimated-sampling-size",
+    "title": "Logistic growth - MCMC without modelling the hidden states v3",
+    "section": "6.1 Rhat and estimated sampling size",
+    "text": "6.1 Rhat and estimated sampling size\n\n\nCode\np_names = collect(keys(problem.prior_dists))\nburnin = nsamples ÷ thin ÷ 2\n\nchn = Chains(post[burnin:end, :, :], p_names)\n\n\n\nChains MCMC chain (5001×5×4 Array{Float64, 3}):\n\nIterations        = 1:1:5001\nNumber of chains  = 4\nSamples per chain = 5001\nparameters        = r, K, x₀, σ_o, σ_p\n\nSummary Statistics\n  parameters       mean       std      mcse   ess_bulk   ess_tail      rhat    ⋯\n      Symbol    Float64   Float64   Float64    Float64    Float64   Float64    ⋯\n\n           r     0.0908    0.0181    0.0014   179.2726   318.1972    1.0520    ⋯\n           K   411.4144   56.2869    2.8384   311.1559   361.7539    1.0817    ⋯\n          x₀    28.3845   10.4171    0.7486   217.7648   270.6981    1.0629    ⋯\n         σ_o    28.7636    1.7470    0.1313   186.8495   349.8429    1.0763    ⋯\n         σ_p     0.0423    0.0081    0.0006   171.3517   300.5455    1.0877    ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0531     0.0798     0.0904     0.1069     0.1204\n           K   324.5475   374.9129   412.3955   429.1943   555.4846\n          x₀     7.8504    20.1290    27.7525    37.9074    46.8730\n         σ_o    25.4150    27.3036    28.5326    30.0089    32.5175\n         σ_p     0.0256     0.0369     0.0441     0.0466     0.0551",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v3"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v3.html#pair-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v3.html#pair-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v3",
+    "section": "6.2 Pair plot for model parameter",
+    "text": "6.2 Pair plot for model parameter\n\n\nCode\npairplot(chn, PairPlots.Truth(true_solution.parameter))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v3"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v3.html#trace-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v3.html#trace-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v3",
+    "section": "6.3 Trace plot for model parameter",
+    "text": "6.3 Trace plot for model parameter\n\n\nCode\nStatsPlots.plot(chn)",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v3"
+    ]
+  },
+  {
     "objectID": "src/SMC.html",
     "href": "src/SMC.html",
     "title": "Sequential monte carlo",
@@ -67,287 +119,307 @@
     ]
   },
   {
-    "objectID": "src/particle_filter.html",
-    "href": "src/particle_filter.html",
-    "title": "Simple State Space Model - Only Filtering",
+    "objectID": "src/Gibbs.html",
+    "href": "src/Gibbs.html",
+    "title": "Gibbs sampling",
     "section": "",
-    "text": "HMM\n\n\n\nS1\n\ns(t-1)\n\n\n\nX1\n\nx(t-1)\n\n\n\nS1-&gt;X1\n\n\nεₜ₋₁\n\n\n\nS2\n\ns(t)\n\n\n\nX2\n\nx(t)\n\n\n\nS2-&gt;X2\n\n\n\n\n\nS3\n\ns(t+1)\n\n\n\nX3\n\nx(t+1)\n\n\n\nS3-&gt;X3\n\n\n\n\n\nSend\n\ns(T)\n\n\n\nXend\n\nx(T)\n\n\n\nSend-&gt;Xend\n\n\n\n\n\n\nX0\n\nx(0)\n\n\n\nXstart-&gt;X0\n\n\np(x₀)\n\n\n\nX0-&gt;S1\n\n\n                                       \n\n\n\nX1-&gt;S2\n\n\np(xₜ | xₜ₋₁)\n\n\n\nY1\n\ny(t-1)\n\n\n\nX1-&gt;Y1\n\n\nηₜ₋₁\n\n\n\nX2-&gt;S3\n\n\n\n\n\nY2\n\ny(t)\n\n\n\nX2-&gt;Y2\n\n\np(yₜ | xₜ)\n\n\n\nX3-&gt;Send\n\n\n                                       \n\n\n\nY3\n\ny(t+1)\n\n\n\nX3-&gt;Y3\n\n\n\n\n\nYend\n\ny(T)\n\n\n\nXend-&gt;Yend\n\n\n\n\n\n\n\n\nFigure 1: Forward algorithm for a hidden markov model.",
+    "text": "We want to estimate the unknown parameters \\(\\mu\\) and \\(\\sigma\\) of a normal distribution. We will use the following model: \\[\n\\begin{align}\n    &y = \\mu + \\varepsilon \\\\\n    &\\varepsilon \\sim \\mathcal{N}(0, \\sigma) \\\\\n\\end{align}\n\\]\nand the following priors: \\[\n\\begin{align}\n    &\\mu \\sim \\mathcal{N}(0, 5) \\\\\n    &\\sigma \\sim \\mathcal{N}_+(0, 2)\n\\end{align}\n\\]",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "Particle filter"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/particle_filter.html#load-packages-and-makie-theme",
-    "href": "src/particle_filter.html#load-packages-and-makie-theme",
-    "title": "Simple State Space Model - Only Filtering",
-    "section": "1 Load packages and Makie theme",
-    "text": "1 Load packages and Makie theme\n\nimport Random\nimport StatsBase\n\nusing CairoMakie\nusing Distributions\nusing Statistics\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "objectID": "src/Gibbs.html#load-packages",
+    "href": "src/Gibbs.html#load-packages",
+    "title": "Gibbs sampling",
+    "section": "2.1 Load packages",
+    "text": "2.1 Load packages\nWe will use the CairoMakie package for plotting and the Distributions package for generating data and calculating the likelihood. We will also use the MCMCChains package for checking the convergence of the chains.\n\n\nCode\nusing CairoMakie\nusing Distributions\nusing MCMCChains\n\nset_theme!(\n    fontsize=18,\n    Axis=(xgridvisible=false, ygridvisible=false,\n          topspinevisible=false, rightspinevisible=false),\n)",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "Particle filter"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/particle_filter.html#generate-some-data",
-    "href": "src/particle_filter.html#generate-some-data",
-    "title": "Simple State Space Model - Only Filtering",
-    "section": "2 Generate some data",
-    "text": "2 Generate some data\n\n# Random.seed!(123)\n\nσ_p = 1.0\nσ_o = 5.0\nβ = 1.0\nα = 1.0\nz₀ = 5.0\nε_t_dist = Normal(0, σ_p)\nη_t_dist = Normal(0, σ_o)\n\nts = 1:50\nz = Array{Float64}(undef, length(ts))\ny = Array{Float64}(undef, length(ts))\n\nfor t in ts\n    z_lastt = t == 1 ? z₀ : z[t-1]\n\n    ε_t = rand(ε_t_dist)\n    z[t] = β * z_lastt + ε_t\n    \n    η_t = rand(η_t_dist)    \n    y[t] = α * z[t] + η_t\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n    Legend(fig[1, 2], ax)\n    fig\nend",
+    "objectID": "src/Gibbs.html#generate-data",
+    "href": "src/Gibbs.html#generate-data",
+    "title": "Gibbs sampling",
+    "section": "2.2 Generate data",
+    "text": "2.2 Generate data\nWe generate 500 data points from a normal distribution with the true parameters \\(\\mu = 5\\) and \\(\\sigma = 2\\):\n\nμ, σ = 5, 2\ny = rand(Normal(μ, σ), 500)\nhist(y)",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "Particle filter"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/particle_filter.html#find-state-values",
-    "href": "src/particle_filter.html#find-state-values",
-    "title": "Simple State Space Model - Only Filtering",
-    "section": "3 Find state values",
-    "text": "3 Find state values\n\nnum_particles = 200\nprior_dist = truncated(Normal(0, 50); )\nlog_prior(z) = logpdf(prior_dist, z)\nlog_likelihood(y, z) = logpdf(Normal(α * z, σ_o), y)\ncalc_weights(y, z) = log_likelihood.(y, z)\n\nparticles = rand(prior_dist, num_particles)\nparticle_mat = zeros(length(ts), num_particles)\nll = zeros(length(ts))\n\nfor t in ts\n    weights = calc_weights(y[t], particles)\n    max_weight = maximum(weights)\n    scaled_weights = exp.(weights .- max_weight)\n    ll[t] = mean(weights)\n\n    indices = sample(1:num_particles, StatsBase.Weights(scaled_weights), num_particles; replace = true)\n    particles = particles[indices]\n    particle_mat[t, :] = particles\n    particles = β .* particles .+ rand(ε_t_dist, num_particles)\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    for t in ts\n        scatter!(fill(t, num_particles), particle_mat[t, :], \n            color = (:black, 0.05), \n            label = t == 1 ? \"particles\" : nothing)\n    end\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n   \n    Legend(fig[1, 2], ax)\n    fig\nend",
+    "objectID": "src/Gibbs.html#sampling",
+    "href": "src/Gibbs.html#sampling",
+    "title": "Gibbs sampling",
+    "section": "2.3 Sampling",
+    "text": "2.3 Sampling\nWe start with random values for \\(\\mu\\) and \\(\\sigma\\) from the prior distributions. For each step, we either sample \\(\\mu\\) or \\(\\sigma\\) and keep the other parameter constant. The method is a special calse of the Metropolis-Hastings algorithm.\n\nnchains = 6\nnsamples = 5_000\nburnin = nsamples ÷ 2\nθ = zeros(2, nsamples, nchains)\n\nμ_prior = Normal(0, 5)\nσ_prior = truncated(Normal(0, 2); lower = 0)\n\nproposals_sigma = [0.5, 0.5]\n\nfor n in 1:nchains\n    θ[:, 1, n] =  [rand(μ_prior), rand(σ_prior)]\n    logprior_init = logpdf(μ_prior, θ[1, 1, n]) + logpdf(σ_prior, θ[2, 1, n])\n    loglikelihood_init = sum(logpdf.(Normal(θ[1, 1, n], θ[2, 1, n]), y))\n    current_logposterior = logprior_init + loglikelihood_init\n    current_μ, current_σ = θ[:, 1, n]\n\n    for i in 2:nsamples    \n        if i % 2 == 0\n            # sample new μ\n            current_μ = rand(Normal(θ[1, i-1, n], proposals_sigma[1]))\n            current_σ = θ[2, i-1, n]\n        else\n            # sample new σ\n            current_μ = θ[1, i-1, n]\n            current_σ = rand(Normal(θ[2, i-1, n], proposals_sigma[2]))   \n        end\n        \n        # prior\n        logprior = logpdf(μ_prior, current_μ) + logpdf(σ_prior, current_σ)\n        if logprior == -Inf\n            θ[:, i, n] = θ[:, i-1, n]\n            continue\n        end\n        \n        # likelihood\n        loglikelihood = sum(logpdf.(Normal(current_μ, current_σ), y))    \n        \n        # posterior\n        logposterior = logprior + loglikelihood\n        \n        r = logposterior - current_logposterior\n        if log(rand()) &lt; r\n            θ[:, i, n] = [current_μ, current_σ]\n            current_logposterior = logposterior\n        else\n            θ[:, i, n] = θ[:, i-1, n]\n        end\n    end\nend",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "Particle filter"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/state_space_mcmc.html",
-    "href": "src/state_space_mcmc.html",
-    "title": "Simple State Space Model",
-    "section": "",
-    "text": "I use the first example the Normal dynamic linear model of: Auger-Méthé et al. (2021)\n\\[\n\\begin{align}\n    z_t &= \\beta z_{t-1} + \\varepsilon_t, &\\varepsilon_t &\\sim N(0, \\sigma_p), \\\\\n    y_t &= \\alpha z_t + \\eta_t, &\\eta_t &\\sim N(0, \\sigma_o), \\\\\n    f&(z_t | z_{t-1},  \\pmb{\\Theta_p}), &t &= 1 \\dots, T, \\\\\n    g&(y_t | z_t, \\pmb{\\Theta_o}), &t &= 1 \\dots, T \\\\\n\\end{align}\n\\]\nWhat do we want to estimate?\nwith the joint likelihood of \\(\\pmb{\\Theta}\\) and \\(\\pmb{z}\\):\n\\[\nL_J(\\pmb{\\Theta}, \\pmb{z}_{1:T} | \\pmb{y}_{1:T}) = \\prod_{t=1}^T g(y_t | z_t, \\pmb{\\Theta_o})f(z_t | z_{t-1},  \\pmb{\\Theta_p})\n\\]\nmarginal likelihood of \\(\\pmb{\\Theta}\\):\n\\[\nL_M(\\pmb{\\Theta} | \\pmb{y}_{1:T}) = \\int L_J(\\pmb{\\Theta}, \\pmb{z}_{1:T} | \\pmb{y}_{1:T}) d\\pmb{z}_{1:T}\n\\]",
+    "objectID": "src/Gibbs.html#plot",
+    "href": "src/Gibbs.html#plot",
+    "title": "Gibbs sampling",
+    "section": "2.4 Plot",
+    "text": "2.4 Plot\n\n\nCode\nlet \n    fig = Figure(; size = (1200, 600))\n    Axis(fig[1, 1]; ylabel = \"μ\", title = \"mcmc trace\")\n    for n in 1:nchains\n        lines!(burnin:nsamples, θ[1, burnin:end, n])\n    end\n\n    Axis(fig[2, 1]; ylabel = \"σ\")\n    for n in 1:nchains\n        lines!(burnin:nsamples, θ[2, burnin:end, n])\n    end\n\n    Axis(fig[1, 2]; title = \"posterior density\")\n    density!(vec(θ[1, burnin:end, :]))\n    \n    Axis(fig[2, 2];)\n    density!(vec(θ[2, burnin:end, :]))\n    \n    Axis(fig[1, 3]; title = \"posterior vs prior\")\n    density!(vec(θ[1, burnin:end, :]))\n    plot!(μ_prior; color = :red)\n    \n    Axis(fig[2, 3];)\n    density!(vec(θ[2, burnin:end, :]))\n    plot!(σ_prior; color = :red)\n    \n    fig\nend",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "MCMC"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/state_space_mcmc.html#load-packages-and-makie-theme",
-    "href": "src/state_space_mcmc.html#load-packages-and-makie-theme",
-    "title": "Simple State Space Model",
-    "section": "1 Load packages and Makie theme",
-    "text": "1 Load packages and Makie theme\n\nimport Random\n\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing ProtoStructs\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "objectID": "src/Gibbs.html#convergence-diagnostics",
+    "href": "src/Gibbs.html#convergence-diagnostics",
+    "title": "Gibbs sampling",
+    "section": "2.5 Convergence diagnostics",
+    "text": "2.5 Convergence diagnostics\n\n\nCode\nChains(permutedims(θ[:, burnin:end, :], (2, 1, 3)), [:μ, :σ])\n\n\n\nChains MCMC chain (2501×2×6 Array{Float64, 3}):\n\nIterations        = 1:1:2501\nNumber of chains  = 6\nSamples per chain = 2501\nparameters        = μ, σ\n\nSummary Statistics\n  parameters      mean       std      mcse    ess_bulk    ess_tail      rhat   ⋯\n      Symbol   Float64   Float64   Float64     Float64     Float64   Float64   ⋯\n\n           μ    5.0805    0.0918    0.0027   1202.1637   1179.3778    1.0051   ⋯\n           σ    1.9926    0.0622    0.0021    894.8553    849.5681    1.0061   ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters      2.5%     25.0%     50.0%     75.0%     97.5% \n      Symbol   Float64   Float64   Float64   Float64   Float64 \n\n           μ    4.9048    5.0163    5.0823    5.1417    5.2615\n           σ    1.8720    1.9514    1.9908    2.0372    2.1168",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "MCMC"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/state_space_mcmc.html#generate-data",
-    "href": "src/state_space_mcmc.html#generate-data",
-    "title": "Simple State Space Model",
-    "section": "2 Generate data",
-    "text": "2 Generate data\n\nRandom.seed!(123)\n\nσ_p = 3.0\nσ_o = 2.0\nβ = 1.0\nα = 1.0\nz₀ = 5.0\nε_t_dist = Normal(0, σ_p)\nη_t_dist = Normal(0, σ_o)\n\nts = 1:50\nz = Array{Float64}(undef, length(ts))\ny = Array{Float64}(undef, length(ts))\n\nfor t in ts\n    z_lastt = t == 1 ? z₀ : z[t-1]\n\n    ε_t = rand(ε_t_dist)\n    z[t] = β * z_lastt + ε_t\n    \n    η_t = rand(η_t_dist)    \n    y[t] = α * z[t] + η_t\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n    Legend(fig[1, 2], ax)\n    fig\nend",
+    "objectID": "src/Gibbs.html#σ-vs-μ-draws",
+    "href": "src/Gibbs.html#σ-vs-μ-draws",
+    "title": "Gibbs sampling",
+    "section": "2.6 σ vs μ draws",
+    "text": "2.6 σ vs μ draws\n\n\nCode\nlet \n    fig = Figure(; size = (900, 450))\n    Axis(fig[1, 1]; xlabel = \"μ\", ylabel = \"σ\", title = \"with burn-in period\")\n    for n in 1:nchains\n        scatterlines!(θ[1, :, n], θ[2, :, n])\n    end\n    \n    Axis(fig[1, 2]; xlabel = \"μ\", ylabel = \"σ\", title = \"burn-in removed\")\n    for n in 1:nchains\n        scatter!(θ[1, burnin:end, n], θ[2, burnin:end, n]; \n                 color = (Makie.wong_colors()[n], 0.2))\n    end\n\n    fig\nend",
     "crumbs": [
       "Home",
-      "State Space Models",
-      "MCMC"
+      "General methods",
+      "Gibbs"
     ]
   },
   {
-    "objectID": "src/state_space_mcmc.html#define-the-posterior-likelihood-and-prior",
-    "href": "src/state_space_mcmc.html#define-the-posterior-likelihood-and-prior",
-    "title": "Simple State Space Model",
-    "section": "3 Define the posterior (likelihood and prior)",
-    "text": "3 Define the posterior (likelihood and prior)\nWhich parameters do we need to estimate?\n\nmy_priors = (;\n    α = truncated(Normal(0, 1); lower = 0),\n    β = Normal(0, 1),\n    z₀ = truncated(Normal(0, 50); lower = 0),\n    σ_p = truncated(Normal(0, 1); lower = 0),\n    σ_o = truncated(Normal(0, 1); lower = 0),\n    ẑ = [Normal(0, 10) for _ in ts]\n)\n\n@proto struct StateSpaceModel\n    ts::UnitRange{Int64} \n    y::Vector{Float64}\n    prior_dists::NamedTuple\n    nparameter::Int64\n    transfomation\nend\n\n\nfunction (problem::StateSpaceModel)(θ)\n    @unpack ts, y, prior_dists = problem\n    @unpack α, β, z₀, σ_p, σ_o, ẑ = θ\n\n    loglikelihood = 0.0\n        \n    # process equation\n    for t in ts\n        ẑ_last = t == 1 ? z₀ : ẑ[t-1]\n        loglikelihood += logpdf(Normal(β * ẑ_last, σ_p), z[t])\n    end\n    \n    # observation equation\n    for t in ts\n        loglikelihood += logpdf(Normal(α * ẑ[t], σ_o), y[t])\n    end\n    \n    logprior = 0\n    for keys in keys(prior_dists)\n        p_val = θ[keys]\n        prior = prior_dists[keys]\n        \n        if p_val isa AbstractVector\n            prior = prior_dists[keys]\n            logprior += sum(logpdf.(prior, θ[keys]))\n        else\n            logprior += logpdf(prior, θ[keys])\n        end\n    end\n    \n    loglikelihood + logprior\nend\n\nfunction sample_prior(problem)\n    @unpack prior_dists = problem\n    θ = NamedTuple{keys(prior_dists)}()\n    for key in keys(prior_dists)\n        θ[key] = rand(prior_dists[key])\n    end\n    θ\n\nend\n\n\nmy_transform = as((α = asℝ₊, β = asℝ, z₀ = asℝ₊, σ_p = asℝ₊, σ_o = asℝ₊, ẑ = as(Array, length(y))))\nproblem = StateSpaceModel(ts, y, my_priors, 5 + length(y), my_transform)\n\nℓ = TransformedLogDensity(problem.transfomation, problem)\nposterior(x) = LogDensityProblems.logdensity(ℓ, x)\nposterior(rand(problem.nparameter))\n\n-1418.9425453942642",
-    "crumbs": [
-      "Home",
-      "State Space Models",
-      "MCMC"
-    ]
-  },
-  {
-    "objectID": "src/state_space_mcmc.html#sampling",
-    "href": "src/state_space_mcmc.html#sampling",
-    "title": "Simple State Space Model",
-    "section": "4 Sampling",
-    "text": "4 Sampling\n\nnsamples = 100_000\nnchains = 4\nnparameter = problem.nparameter\n\npropσ = fill(0.05, nparameter)\naccepted_θ = zeros(nchains, nparameter, nsamples)\naccepted = zeros(nchains)\n\n\nfor n in 1:nchains\n    θ = zeros(nparameter)\n    post = posterior(θ)\n\n    for k in 1:nsamples\n        \n        ## new proposal\n        proposal_dist = MvNormal(θ, Diagonal(propσ))\n        θstar = rand(proposal_dist) \n        \n        ## evaluate prior + likelihood\n        poststar = posterior(θstar)\n        \n        ## M-H ratio\n        ratio = poststar - post\n\n        if log(rand()) &lt; min(ratio, 1)\n            accepted[n] += 1\n            θ = θstar\n            post = poststar\n        end\n        \n        accepted_θ[n, :, k] = θ\n    end\nend\n\nburnin = Int(2/4 *nsamples)\naccepted_θ\n\nposterior_mat = Array{Float64}(undef, nsamples, nparameter, nchains)\nfor c in 1:nchains\n    for i in 1:nsamples\n        transformed_parameter = collect(transform(problem.transfomation, accepted_θ[c, :, i])) \n        posterior_mat[i, 1:5, c] .= transformed_parameter[1:5]\n        posterior_mat[i, 6:end, c] .= transformed_parameter[6]\n    end\nend",
-    "crumbs": [
-      "Home",
-      "State Space Models",
-      "MCMC"
-    ]
-  },
-  {
-    "objectID": "src/state_space_mcmc.html#check-convergence",
-    "href": "src/state_space_mcmc.html#check-convergence",
-    "title": "Simple State Space Model",
-    "section": "5 Check convergence",
-    "text": "5 Check convergence\n\nlet\n    draws = 1:nsamples\n    draw_start = max(Int(round(nsamples * 0.5)), 1)\n    chains = 1:nchains\n\n    fig = Figure(; size = (500, 3500))\n\n    for i in 1:nparameter\n        parameter_name = if i &gt;= length(keys(problem.prior_dists))\n            z_i = i - length(keys(problem.prior_dists)) +1\n            \"ẑ $(z_i)\"\n        else\n            string(keys(problem.prior_dists)[i])\n        end\n\n    \n        ax = Axis(fig[i, 1], ylabel = parameter_name, xticklabelsvisible = false)\n\n        for c in chains\n            lines!(ax, draws[draw_start:end], posterior_mat[draw_start:end, i, c])\n        end\n\n        if i == nparameter\n            ax.xlabel = \"draw\"\n            ax.xticklabelsvisible = true\n        end\n\n        ax = Axis(fig[i, 2], yticklabelsvisible = false)\n\n        for c in chains\n            density!(ax, posterior_mat[draw_start:end, i, c])\n        end\n\n        pdist = if i &gt;= length(problem.prior_dists)\n            problem.prior_dists[length(problem.prior_dists)][1]\n        else\n            problem.prior_dists[i]\n        end\n        \n        plot!(pdist, color = :red, linewidth = 2)\n    end\n\n    fig\nend",
-    "crumbs": [
-      "Home",
-      "State Space Models",
-      "MCMC"
-    ]
-  },
-  {
-    "objectID": "src/state_space_mcmc.html#predictions",
-    "href": "src/state_space_mcmc.html#predictions",
-    "title": "Simple State Space Model",
-    "section": "6 Predictions",
-    "text": "6 Predictions\n\nfunction sample_posterior(data, problem)\n    nchains, nparameter, nsamples = size(data)\n    samples_start = Int(round(nsamples * 0.001))\n    \n    return transform(problem.transfomation, data[sample(1:nchains), :, sample(samples_start:nsamples)])\nend\n\nsample_posterior(accepted_θ, problem)\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n    \n    for i in 1:200\n        θ = sample_posterior(accepted_θ, problem)\n        lines!(ts, θ.ẑ, color = (:black, 0.05))\n    end\n    \n    Legend(fig[1, 2], ax)\n    fig\nend",
-    "crumbs": [
-      "Home",
-      "State Space Models",
-      "MCMC"
-    ]
-  },
-  {
-    "objectID": "src/state_space.html",
-    "href": "src/state_space.html",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "",
-    "text": "HMM\n\n\n\nS1\n\ns(t-1)\n\n\n\nX1\n\nx(t-1)\n\n\n\nS1-&gt;X1\n\n\nεₜ₋₁\n\n\n\nS2\n\ns(t)\n\n\n\nX2\n\nx(t)\n\n\n\nS2-&gt;X2\n\n\n\n\n\nS3\n\ns(t+1)\n\n\n\nX3\n\nx(t+1)\n\n\n\nS3-&gt;X3\n\n\n\n\n\nSend\n\ns(T)\n\n\n\nXend\n\nx(T)\n\n\n\nSend-&gt;Xend\n\n\n\n\n\n\nX0\n\nx(0)\n\n\n\nXstart-&gt;X0\n\n\np(x₀)\n\n\n\nX0-&gt;S1\n\n\n                                       \n\n\n\nX1-&gt;S2\n\n\np(xₜ | xₜ₋₁)\n\n\n\nY1\n\ny(t-1)\n\n\n\nX1-&gt;Y1\n\n\nηₜ₋₁\n\n\n\nX2-&gt;S3\n\n\n\n\n\nY2\n\ny(t)\n\n\n\nX2-&gt;Y2\n\n\np(yₜ | xₜ)\n\n\n\nX3-&gt;Send\n\n\n                                       \n\n\n\nY3\n\ny(t+1)\n\n\n\nX3-&gt;Y3\n\n\n\n\n\nYend\n\ny(T)\n\n\n\nXend-&gt;Yend\n\n\n\n\n\n\n\n\nFigure 1: Forward algorithm for a hidden markov model."
-  },
-  {
-    "objectID": "src/state_space.html#load-packages-and-makie-theme",
-    "href": "src/state_space.html#load-packages-and-makie-theme",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "1 Load packages and Makie theme",
-    "text": "1 Load packages and Makie theme\n\nimport Random\n\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing ProtoStructs\nusing StatsBase\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))"
-  },
-  {
-    "objectID": "src/state_space.html#generate-some-data",
-    "href": "src/state_space.html#generate-some-data",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "2 Generate some data",
-    "text": "2 Generate some data\n\nRandom.seed!(123)\n\nσ_p = 2.0\nσ_o = 3.0\nβ = 0.7\nx₀ = 50.0\nε_t_dist = Normal(0, σ_p)\nη_t_dist = Normal(0, σ_o)\n\nts = 1:200\n\ns = Array{Float64}(undef, length(ts))\ns_onestep = Array{Float64}(undef, length(ts))\nx = Array{Float64}(undef, length(ts))\ny = Array{Float64}(undef, length(ts))\n\nfor t in ts\n    x_lastt = t == 1 ? x₀ : x[t-1]\n    s_lastt = t == 1 ? x₀ : s[t-1]\n\n    ε_t = rand(ε_t_dist)\n    s[t] = β * s_lastt \n    s_onestep[t] = β * x_lastt\n    x[t] = s_onestep[t] + ε_t\n    \n    η_t = rand(η_t_dist)    \n    y[t] = x[t] + η_t\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    lines!(ts, s, color = :grey, label = \"process-model state: s\")\n    lines!(ts, s_onestep, color = :grey, linestyle = :dash, \n        label = \"one step ahead prediction: s\",)\n    scatterlines!(ts, x, color = :blue, label = \"true hidden state: x\")\n    scatter!(ts, y, color = :red, label = \"observations: y\")\n    Legend(fig[1, 2], ax)\n    fig\nend"
-  },
-  {
-    "objectID": "src/state_space.html#particle-filter---forward-algorithm",
-    "href": "src/state_space.html#particle-filter---forward-algorithm",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "3 Particle filter - forward algorithm",
-    "text": "3 Particle filter - forward algorithm\n\n@proto struct Particle\n    val::Vector{Float64}\n    log_weights::Vector{Float64}\n    weights::Weights{Float64, Float64, Vector{Float64}}\nend\n    \nfunction particle_filter(θ, problem; num_particles = 100)\n    @unpack β, σ_p, σ_o, x₀ = θ\n    @unpack y, ts = problem\n    \n    particles = Particle(fill(x₀, num_particles), \n                         zeros(num_particles), \n                         Weights(ones(num_particles) / num_particles))\n    \n    ll = zeros(length(ts))\n    \n    for t in ts\n        problem.samples_hidden_state[t] = mean(particles.val, particles.weights)\n        indices = sample(1:num_particles, particles.weights, num_particles; \n                         replace = true)\n        particles.val .= particles.val[indices]\n    \n        particles.val .= β .* particles.val .+ rand(Normal(0.0, σ_p), num_particles)\n    \n        particles.log_weights .= logpdf.(Normal.(particles.val, σ_o), y[t])\n        \n        l = exp.(particles.log_weights .- maximum(particles.log_weights))\n        if any(isnan.(l) .|| isinf.(sum(l)))   \n            return -Inf\n            particles.weights .= Weights(ones(num_particles) / num_particles)\n        else\n            particles.weights .= Weights(l)\n        end\n        \n        \n        ll[t] = mean(particles.weights)\n    end\n\n    return sum(ll)\nend\n\nparticle_filter (generic function with 1 method)"
-  },
-  {
-    "objectID": "src/state_space.html#define-problem",
-    "href": "src/state_space.html#define-problem",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "4 Define problem",
-    "text": "4 Define problem\n\nmy_priors = (;\n    β = Normal(1, 0.2),\n    x₀ = truncated(Normal(0, 100); lower = 0),\n    σ_p = truncated(Normal(0, 1); lower = 0),\n    σ_o = truncated(Normal(0, 1); lower = 0)\n)\n\n@proto struct StateSpaceModel\n    ts::UnitRange{Int64} \n    y::Vector{Float64}\n    prior_dists::NamedTuple\n    nparameter::Int64\n    transformation\n    samples_hidden_state::Vector{Float64}\nend\n\nfunction Base.show(io::IO, problem::StateSpaceModel)\n    println(io, \"StateSpaceModel with $(problem.nparameter) parameters\")\nend\n\nfunction (problem::StateSpaceModel)(θ)\n    @unpack prior_dists = problem\n\n    logprior = 0.0\n    for keys in keys(prior_dists)\n        logprior += logpdf(prior_dists[keys], θ[keys])\n    end\n\n    loglikelihood = particle_filter(θ, problem)\n    \n    return loglikelihood + logprior\nend\n\nfunction sample_prior(problem; inverse = true)\n    @unpack prior_dists = problem\n    θ = []\n    for key in keys(prior_dists)\n        push!(θ, rand(prior_dists[key]))\n    end\n    \n    @show p = (; zip(keys(prior_dists), θ)...)\n\n    if inverse\n        p = TransformVariables.inverse(problem.transformation, p)\n    end\n\n    return p\nend\n\nmy_transform = as((β = asℝ, x₀ = asℝ₊, σ_p = asℝ₊, σ_o = asℝ₊))\nproblem = StateSpaceModel(ts, y, my_priors, length(my_priors), my_transform, zeros(length(ts)))\nℓ = TransformedLogDensity(problem.transformation, problem)\nposterior(x) = LogDensityProblems.logdensity(ℓ, x)\n@show posterior(rand(problem.nparameter))\nproblem\n\nposterior(rand(problem.nparameter)) = 68.62167905798572\n\n\nStateSpaceModel with 4 parameters"
-  },
-  {
-    "objectID": "src/state_space.html#mcmc-sampler",
-    "href": "src/state_space.html#mcmc-sampler",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "5 MCMC Sampler",
-    "text": "5 MCMC Sampler\n\nfunction metroplis_sampler(problem; nsamples = 50_000, nchains = 4, \n                           propσ = [0.01, 0.01, 0.1, 0.01])\n    @unpack nparameter, ts, transformation = problem\n\n    \n    accepted_θ = zeros(nchains, nparameter, nsamples)\n    samples_hidden_state = zeros(nchains, nsamples, length(ts))\n\n    accepted = zeros(nchains)\n\n    Threads.@threads for n in 1:nchains\n        θ = sample_prior(problem)\n        post = posterior(θ)\n\n        for k in 1:nsamples\n            ## new proposal\n            proposal_dist = MvNormal(θ, Diagonal(propσ))\n            θstar = rand(proposal_dist) \n            \n            ## evaluate prior + likelihood\n            poststar = posterior(θstar)\n            \n            ## M-H ratio\n            ratio = poststar - post\n\n            if log(rand()) &lt; min(ratio, 1)\n                accepted[n] += 1\n                θ = θstar\n                post = poststar\n            end\n            \n            accepted_θ[n, :, k] = θ\n            samples_hidden_state[n, k, :] = problem.samples_hidden_state\n        end\n    end\n\n    posterior_mat = zeros(nchains, nparameter, nsamples)\n    for c in 1:nchains\n        for i in 1:nsamples\n            posterior_mat[c, :, i] = collect(transform(transformation, accepted_θ[c, :, i])) \n        end\n    end\n\n    return accepted_θ, posterior_mat, samples_hidden_state\nend\n\nmetroplis_sampler (generic function with 1 method)"
-  },
-  {
-    "objectID": "src/state_space.html#run-mcmc",
-    "href": "src/state_space.html#run-mcmc",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "6 Run MCMC",
-    "text": "6 Run MCMC\n\nraw_post, post, hidden_state = metroplis_sampler(problem; nsamples = 5000, propσ = [0.1, 0.1, 0.1, 0.1]);\n\np = (; zip(keys(prior_dists), θ)...) = (β = 0.9753751087511658, x₀ = 93.98184080850311, σ_p = 0.13235135143826907, σ_o = 1.7565331195649996)\np = (; zip(keys(prior_dists), θ)...) = (β = 1.1451506936076472, x₀ = 36.340521776379056, σ_p = 1.539795486624649, σ_o = 0.82791565299964)\np = (; zip(keys(prior_dists), θ)...) = (β = 0.8514707728861178, x₀ = 12.114158790768288, σ_p = 1.777095838953991, σ_o = 0.9664750671128808)\np = (; zip(keys(prior_dists), θ)...) = (β = 0.9891188975996769, x₀ = 12.262691616018566, σ_p = 0.0870361288109363, σ_o = 0.9021545218808843)\n\n\n\nlet\n    nchains, nparameter, nsamples = size(post)\n    draws = 1:nsamples\n    draw_start = max(Int(round(nsamples * 0.5)), 1)\n    chains = 1:nchains\n\n    fig = Figure(; size = (500, 800))\n\n    for i in 1:nparameter\n        parameter_name = string(keys(problem.prior_dists)[i])\n        ax = Axis(fig[i, 1], ylabel = parameter_name, xticklabelsvisible = false)\n\n        for c in chains\n            lines!(ax, draws[draw_start:end], post[c, i, draw_start:end])\n        end\n\n        if i == nparameter\n            ax.xlabel = \"draw\"\n            ax.xticklabelsvisible = true\n        end\n\n        ax = Axis(fig[i, 2], yticklabelsvisible = false)\n\n        for c in chains\n            density!(ax, post[c, i, draw_start:end])\n        end\n\n        pdist = problem.prior_dists[i]\n        plot!(pdist, color = :red, linewidth = 2)\n    end\n\n    fig\nend"
-  },
-  {
-    "objectID": "src/state_space.html#predictions",
-    "href": "src/state_space.html#predictions",
-    "title": "Simple State Space Model - MCMC and Filtering",
-    "section": "7 Predictions",
-    "text": "7 Predictions\n\nfunction sample_posterior(data)\n    nchains, nparameter, nsamples = size(data)\n    samples_start = Int(round(nsamples * 0.8))\n    \n    return data[sample(1:nchains), :, sample(samples_start:nsamples)]\nend\n\nfunction predict(data, problem; noise = false)\n    @unpack ts = problem\n    β, x₀, σ_p, σ_o = sample_posterior(data)\n\n    x = Array{Float64}(undef, length(ts))\n\n    for t in ts\n        x_lastt = t == 1 ? x₀ : x[t-1]\n        ε_t = rand(Normal(0, σ_p))\n\n        if noise\n            x[t] = β * x_lastt + ε_t\n        else\n            x[t] = β * x_lastt\n        end\n    end\n\n    return x\nend\n\n\nfunction sample_hidden_state(data)\n    nchains, nsamples, nts = size(data)\n    samples_start = Int(round(nsamples * 0.8))\n    \n    return data[sample(1:nchains), sample(samples_start:nsamples), :]\nend\n\n\nlet\n    fig = Figure(size = (900, 800))\n  \n    Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    for i in 1:5\n        x = sample_hidden_state(hidden_state)\n        scatter!(ts, x; color = (:black, 0.9))\n    end\n    # scatterlines!(ts, x, color = :blue, label = \"true hidden state: x\")\n\n    Axis(fig[2, 1]; xlabel = \"time\", ylabel = \"value\")\n    for i in 1:20\n        x = predict(post, problem)\n        lines!(ts, x; color = (:black, 0.1))\n    end\n    # lines!(ts, s, color = :blue, label = \"process-model state: s\")\n\n\n    fig\nend"
-  },
-  {
-    "objectID": "src/pMCMC_logistic_growth.html",
-    "href": "src/pMCMC_logistic_growth.html",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html",
+    "href": "src/logistic_growth_pMCMC.html",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "",
     "text": "Code\nusing AdaptiveParticleMCMC\nusing CairoMakie\nusing Distributions\nusing LabelledArrays\nusing Statistics\nusing UnPack\n\nimport MCMCChains\nimport PairPlots\nimport StatsPlots\nimport Random\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false, titlehalign = :left,  gridshalign = :left))",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#load-packages",
-    "href": "src/pMCMC_logistic_growth.html#load-packages",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#load-packages",
+    "href": "src/logistic_growth_pMCMC.html#load-packages",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "",
     "text": "Code\nusing AdaptiveParticleMCMC\nusing CairoMakie\nusing Distributions\nusing LabelledArrays\nusing Statistics\nusing UnPack\n\nimport MCMCChains\nimport PairPlots\nimport StatsPlots\nimport Random\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false, titlehalign = :left,  gridshalign = :left))",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#generate-data",
-    "href": "src/pMCMC_logistic_growth.html#generate-data",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#generate-data",
+    "href": "src/logistic_growth_pMCMC.html#generate-data",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "2 Generate data",
     "text": "2 Generate data\n\n\nCode\nfunction generate_data(n_observations; σ_p, σ_o, r, K, x₀)\n    ts = 1:n_observations\n    T = length(ts)\n\n    s = Array{Float64}(undef, T)\n    x = Array{Float64}(undef, T)\n    y = Array{Float64}(undef, T)\n    ε = rand(Normal(0, σ_p), T)\n\n    for t in ts\n        x_lastt = t == 1 ? x₀ : x[t-1]\n        s_lastt = t == 1 ? x₀ : s[t-1]\n\n        s[t] = (1 + r*(1 - s_lastt/K)) * s_lastt\n        x[t] = (1 + r*(1 - x_lastt/K) + ε[t]) * x_lastt\n        y[t] = rand(Gamma(x[t]^2 / σ_o^2, σ_o^2 / x[t]))\n    end\n\n    (; ts, s, x, y, parameter = (; σ_p, σ_o, r, K, x₀))\nend\n\nRandom.seed!(123)\ntrue_solution = generate_data(100; σ_p = 0.05, σ_o = 20.0, r = 0.1, K = 400, x₀ = 20.0);\n\nlet\n    fig = Figure(size = (750, 300))\n\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"population size\")\n    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = \"observations: y\")\n    lines!(true_solution.ts, true_solution.x, color = :blue, label = \"true hidden state: x\")\n    lines!(true_solution.ts, true_solution.s, color = :red, label = \"process-model state: s\")\n    Legend(fig[1, 2], ax)\n    fig\nend",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#function-for-pmcmc",
-    "href": "src/pMCMC_logistic_growth.html#function-for-pmcmc",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#function-for-pmcmc",
+    "href": "src/logistic_growth_pMCMC.html#function-for-pmcmc",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "3 Function for pMCMC",
-    "text": "3 Function for pMCMC\n\n\nCode\nmutable struct Particle\n    s::Float64\n    Particle() = new(0.0)\nend\n\nmutable struct Param\n    r::Float64\n    K::Float64\n    σ_p::Float64\n    σ_o::Float64\n    x₀::Float64\nend\n\nstruct ModelScratch\n    par::Param\n    y::Vector{Float64}\n    ModelScratch() = new(Param(zeros(5)...), true_solution.y)\nend\n\nfunction transition!(x, rng, k, x_prev, scratch)\n    @unpack r, K, σ_p, x₀ = scratch.par\n\n    ε_t = rand(rng, Normal(0, σ_p))\n    if k == 1\n        x.s = (1 + r*(1 - x₀/K) + ε_t) * x₀\n    else\n        x.s = (1 + r*(1 - x_prev.s/K) + ε_t) * x_prev.s\n    end\nend\n\nfunction log_potential(k, x, scratch)\n    if x.s &lt;= 0\n        return -Inf\n    end\n\n    α = x.s^2 / scratch.par.σ_o^2\n    θ = scratch.par.σ_o^2 / x.s\n    logpdf(Gamma(α, θ), scratch.y[k])\nend\n\nfunction set_param!(scratch, θ)\n    scratch.par.r = exp(θ.log_r)\n    scratch.par.K = exp(θ.log_K)\n    scratch.par.σ_p = exp(θ.log_sigma_p)\n    scratch.par.σ_o = exp(θ.log_sigma_o)\n    scratch.par.x₀ = exp(θ.log_x₀)\nend\n\nfunction prior(theta)\n    (logpdf(Normal(log(0.1), 1.0), theta.log_r) +\n     logpdf(Normal(log(200.0), 0.5), theta.log_K) +\n     logpdf(Normal(log(0.1), 0.5), theta.log_sigma_p) +\n     logpdf(Normal(log(10.0), 1.0), theta.log_sigma_o) +\n     logpdf(Normal(log(10.0), 0.5), theta.log_x₀))\nend\n\nfunction sample_prior()\n    LVector(log_r = rand(Normal(log(0.1), 1.0)),\n            log_K = rand(Normal(log(200.0), 0.5)),\n            log_sigma_p = rand(Normal(log(0.1), 0.5)),\n            log_sigma_o = rand(Normal(log(10.0), 1.0)),\n            log_x₀ = rand(Normal(log(10.0), 0.5)))\nend\n\nfunction sample_prior_contrain(n)\n    (; r = exp.(rand(Normal(log(0.1), 1.0), n)),\n       K = exp.(rand(Normal(log(200.0), 0.5), n)),\n       σ_p = exp.(rand(Normal(log(0.1), 0.5), n)),\n       σ_o = exp.(rand(Normal(log(10.0), 1.0), n)),\n       x₀ = exp.(rand(Normal(log(10.0), 0.5), n)))\nend\n\nfunction post_pred(chn, ts; process_noise = false)\n    p = get(chn; section=:parameters)\n    nsamples = length(p[1])\n\n    T = length(ts)\n    X = Array{Float64}(undef, T, nsamples)\n\n    for i in 1:nsamples\n        x = Array{Float64}(undef, T)\n        r = p.r[i]\n        K = p.K[i]\n        σ_p = p.σ_p[i]\n        σ_o = p.σ_o[i]\n        x₀ = p.x₀[i]\n\n        ε = zeros(T)\n        if process_noise\n            ε = rand(Normal(0, σ_p), T)\n        end\n\n        for t in ts\n            x_lastt = t == 1 ? x₀ : x[t-1]\n            x[t] = (1 + r*(1 - x_lastt/K) + ε[t]) * x_lastt\n        end\n        X[:, i] = x\n    end\n\n    mapslices(x_t -&gt; quantile(x_t, [0.025, 0.25, 0.5, 0.75, 0.975]), X, dims = 2)\nend\n\nfunction sample_hiddenstate(data, n)\n    T, nsamples, nchains = size(data)\n    ntotalsamples = nsamples * nchains\n    d = deepcopy(data)\n    d = reshape(d, (T, ntotalsamples))\n    d[:, sample(1:ntotalsamples, n; replace = false)]\nend\n\n\nsample_hiddenstate (generic function with 1 method)",
+    "text": "3 Function for pMCMC\n\n\nCode\nmutable struct Particle\n    s::Float64\n    Particle() = new(0.0)\nend\n\nmutable struct Param\n    r::Float64\n    K::Float64\n    σ_p::Float64\n    σ_o::Float64\n    x₀::Float64\nend\n\nstruct ModelScratch\n    par::Param\n    y::Vector{Float64}\n    ModelScratch() = new(Param(zeros(5)...), true_solution.y)\nend\n\nfunction transition!(x, rng, k, x_prev, scratch)\n    @unpack r, K, σ_p, x₀ = scratch.par\n\n    ε_t = rand(rng, Normal(0, σ_p))\n    if k == 1\n        x.s = (1 + r*(1 - x₀/K) + ε_t) * x₀\n    else\n        x.s = (1 + r*(1 - x_prev.s/K) + ε_t) * x_prev.s\n    end\nend\n\n# only for particle gibbs\nfunction log_transition(k, x_prev, x, scratch)\n    @unpack r, K, σ_p, x₀ = scratch.par\n    \n    old_x = k == 1 ? x₀ : x_prev.s\n    ε = x.s / old_x - 1 - r*(1 - old_x/K)\n    \n    return logpdf(Normal(0, σ_p), ε)\nend\n\nfunction log_potential(k, x, scratch)\n    if x.s &lt;= 0\n        return -Inf\n    end\n\n    α = x.s^2 / scratch.par.σ_o^2\n    θ = scratch.par.σ_o^2 / x.s\n    logpdf(Gamma(α, θ), scratch.y[k])\nend\n\nfunction set_param!(scratch, θ)\n    scratch.par.r = exp(θ.log_r)\n    scratch.par.K = exp(θ.log_K)\n    scratch.par.σ_p = exp(θ.log_sigma_p)\n    scratch.par.σ_o = exp(θ.log_sigma_o)\n    scratch.par.x₀ = exp(θ.log_x₀)\nend\n\nfunction prior(theta)\n    (logpdf(Normal(log(0.1), 1.0), theta.log_r) +\n     logpdf(Normal(log(200.0), 0.5), theta.log_K) +\n     logpdf(Normal(log(0.1), 0.5), theta.log_sigma_p) +\n     logpdf(Normal(log(10.0), 1.0), theta.log_sigma_o) +\n     logpdf(Normal(log(10.0), 0.5), theta.log_x₀))\nend\n\nfunction sample_prior()\n    LVector(log_r = rand(Normal(log(0.1), 1.0)),\n            log_K = rand(Normal(log(200.0), 0.5)),\n            log_sigma_p = rand(Normal(log(0.1), 0.5)),\n            log_sigma_o = rand(Normal(log(10.0), 1.0)),\n            log_x₀ = rand(Normal(log(10.0), 0.5)))\nend\n\nfunction sample_initial_values(sol)\n    f() = randn() * 0.01 + 1\n    p = sol.parameter\n    \n    LVector(log_r = log(p[:r] * f()),\n        log_K = log(p[:K] * f()),\n        log_sigma_p = log(p[:σ_p] * f()),\n        log_sigma_o = log(p[:σ_o] * f()),\n        log_x₀ = log(p[:x₀] * f()))\nend\n\nfunction sample_prior_contrain(n)\n    (; r = exp.(rand(Normal(log(0.1), 1.0), n)),\n       K = exp.(rand(Normal(log(200.0), 0.5), n)),\n       σ_p = exp.(rand(Normal(log(0.1), 0.5), n)),\n       σ_o = exp.(rand(Normal(log(10.0), 1.0), n)),\n       x₀ = exp.(rand(Normal(log(10.0), 0.5), n)))\nend\n\nfunction post_pred(chn, ts; process_noise = false)\n    p = get(chn; section=:parameters)\n    nsamples = length(p[1])\n\n    T = length(ts)\n    X = Array{Float64}(undef, T, nsamples)\n\n    for i in 1:nsamples\n        x = Array{Float64}(undef, T)\n        r = p.r[i]\n        K = p.K[i]\n        σ_p = p.σ_p[i]\n        σ_o = p.σ_o[i]\n        x₀ = p.x₀[i]\n\n        ε = zeros(T)\n        if process_noise\n            ε = rand(Normal(0, σ_p), T)\n        end\n\n        for t in ts\n            x_lastt = t == 1 ? x₀ : x[t-1]\n            x[t] = (1 + r*(1 - x_lastt/K) + ε[t]) * x_lastt\n        end\n        X[:, i] = x\n    end\n\n    mapslices(x_t -&gt; quantile(x_t, [0.025, 0.25, 0.5, 0.75, 0.975]), X, dims = 2)\nend\n\nfunction sample_hiddenstate(data, n)\n    T, nsamples, nchains = size(data)\n    ntotalsamples = nsamples * nchains\n    d = deepcopy(data)\n    d = reshape(d, (T, ntotalsamples))\n    d[:, sample(1:ntotalsamples, n; replace = false)]\nend\n\n\nsample_hiddenstate (generic function with 1 method)",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#prior-predictive-checks",
-    "href": "src/pMCMC_logistic_growth.html#prior-predictive-checks",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#prior-predictive-checks",
+    "href": "src/logistic_growth_pMCMC.html#prior-predictive-checks",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "4 Prior predictive checks",
     "text": "4 Prior predictive checks\n\n\nCode\nlet\n    p_samples = sample_prior_contrain(10000)\n    p_chain = MCMCChains.Chains(hcat(collect(p_samples)...), collect(keys(p_samples)))\n\n    fig = Figure(size = (900, 900))\n\n    Axis(fig[1, 1]; ylabel = \"model\")\n    for i in 1:250\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(p_chain, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K)) * x\n            xs[t] = x\n        end\n\n        global draw = lines!(true_solution.ts, xs, color = (:black, 0.1))\n    end\n    mod = lines!(true_solution.ts, true_solution.s, color = :red, linewidth = 3)\n\n\n    Axis(fig[2, 1]; ylabel = \"state\")\n    for i in 1:250\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(p_chain, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n        σ_p = p[var = :σ_p][1]\n\n\n        ε_t_dist = Normal(0, σ_p)\n        ε = rand(ε_t_dist, length(true_solution.ts))\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K) + ε[t]) * x\n            xs[t] = x\n        end\n\n        global draw_err = lines!(true_solution.ts, xs, color = (:black, 0.1))\n    end\n    st = lines!(true_solution.ts, true_solution.x, color = :blue, linewidth = 3)\n\n    Axis(fig[3, 1]; xlabel = \"time\", ylabel = \"observations\")\n    for i in 1:250\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(p_chain, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n        σ_p = p[var = :σ_p][1]\n        σ_o = p[var = :σ_o][1]\n\n        ε_t_dist = Normal(0, σ_p)\n        ε = rand(ε_t_dist, length(true_solution.ts))\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K) + ε[t]) * x\n\n            if x &gt; 0\n                xs[t] = rand(Gamma(x^2 / σ_o^2, σ_o^2 / x))\n            else\n                xs[t] = NaN\n            end\n        end\n\n        global obs_gen = scatter!(true_solution.ts, xs, color = (:black, 0.1),\n                                  markersize = 3)\n    end\n    obs = scatter!(true_solution.ts, true_solution.y, color = :steelblue4, linewidth = 5)\n\n\n    Legend(fig[1:3, 2],\n           [[mod, st, obs],\n            [draw, draw_err, MarkerElement(marker = :circle, markersize = 8,\n                                           color = (:black, 0.5))]],\n           [[\"Model\", \"Hidden state\", \"Observations\"],\n            [\"Draws\", \"Draws with process error\", \"Generated observations\"]],\n           [\"Underlying data/model\", \"Model estimation\"])\n\n    fig\nend",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#run-pmcmc",
-    "href": "src/pMCMC_logistic_growth.html#run-pmcmc",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#run-pmcmc",
+    "href": "src/logistic_growth_pMCMC.html#run-pmcmc",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "5 Run pMCMC",
-    "text": "5 Run pMCMC\n\n\nCode\nnsamples = 10_000\n\npost_pmcmc, hidden_state = let\n    T = length(true_solution.y)\n    nparticles = 100\n    nchains = 4\n\n    post_objs = []\n    hidden_states_obj = []\n    for i in 1:nchains\n        theta0 = sample_prior()\n        state = SMCState(T, nparticles, Particle, ModelScratch, set_param!,\n                         log_potential, transition!);\n        out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 1,\n                            save_paths = true, b = 0, show_progress = false);\n\n        S = [out.X[j][i].s for i = 1:length(out.X[1]), j = 1:length(out.X)]\n        push!(hidden_states_obj, S)\n\n        θ = deepcopy(out.Theta)\n        θ[1, :] = exp.(out.Theta[1, :])\n        θ[2, :] = exp.(out.Theta[2, :])\n        θ[3, :] = exp.(out.Theta[3, :])\n        θ[4, :] = exp.(out.Theta[4, :])\n        θ[5, :] = exp.(out.Theta[5, :])\n\n        push!(post_objs, θ')\n    end\n\n    cat(post_objs..., dims = 3), cat(hidden_states_obj..., dims = 3)\nend;",
+    "text": "5 Run pMCMC\n\n\nCode\nnsamples = 10_000\n\npost_pmcmc, hidden_state = let\n    T = length(true_solution.y)\n    nparticles = 50\n    nchains = 4\n\n    post_objs = []\n    hidden_states_obj = []\n    Threads.@threads for i in 1:nchains\n        # theta0 = sample_prior()\n        theta0 = sample_initial_values(true_solution)\n        state = SMCState(T, nparticles, Particle, ModelScratch, set_param!,\n                         log_potential, transition!, log_transition);\n        # out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 1,\n        #                     save_paths = true, b = 0, show_progress = false);\n        \n        out = adaptive_pg(theta0, prior, state, nsamples; thin = 1,\n                            save_paths = true, b = 0, show_progress = false);\n\n        S = [out.X[j][i].s for i = 1:length(out.X[1]), j = 1:length(out.X)]\n        push!(hidden_states_obj, S)\n\n        θ = deepcopy(out.Theta)\n        θ[1, :] = exp.(out.Theta[1, :])\n        θ[2, :] = exp.(out.Theta[2, :])\n        θ[3, :] = exp.(out.Theta[3, :])\n        θ[4, :] = exp.(out.Theta[4, :])\n        θ[5, :] = exp.(out.Theta[5, :])\n\n        push!(post_objs, θ')\n    end\n\n    cat(post_objs..., dims = 3), cat(hidden_states_obj..., dims = 3)\nend;",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#convergence-diagnostics",
-    "href": "src/pMCMC_logistic_growth.html#convergence-diagnostics",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#convergence-diagnostics",
+    "href": "src/logistic_growth_pMCMC.html#convergence-diagnostics",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "6 Convergence diagnostics",
-    "text": "6 Convergence diagnostics\n\n\nCode\nburnin = nsamples ÷ 3\nthin = 100\nchn_pmcmc = MCMCChains.Chains(post_pmcmc[burnin:thin:end, :, :], collect(fieldnames(Param)))\n\n\n\nChains MCMC chain (67×5×4 Array{Float64, 3}):\n\nIterations        = 1:1:67\nNumber of chains  = 4\nSamples per chain = 67\nparameters        = r, K, σ_p, σ_o, x₀\n\nSummary Statistics\n  parameters       mean       std      mcse   ess_bulk   ess_tail      rhat    ⋯\n      Symbol    Float64   Float64   Float64    Float64    Float64   Float64    ⋯\n\n           r     0.1191    0.0149    0.0010   220.8852   231.6868    1.0210    ⋯\n           K   373.4274   22.8378    1.5315   227.6439   223.0531    1.0074    ⋯\n         σ_p     0.0522    0.0082    0.0005   239.0271   190.0651    1.0088    ⋯\n         σ_o    19.6850    1.9553    0.1343   206.5015   259.9426    0.9999    ⋯\n          x₀    12.7571    2.6492    0.1868   202.2094   195.2853    1.0045    ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0915     0.1088     0.1198     0.1282     0.1472\n           K   332.0553   357.6375   372.8056   387.0836   419.6283\n         σ_p     0.0384     0.0469     0.0525     0.0564     0.0697\n         σ_o    16.0713    18.3810    19.5715    20.8478    23.9885\n          x₀     8.3110    10.8116    12.4994    14.3345    18.1743\n\n\n\n\n\n\nCode\nStatsPlots.plot(chn_pmcmc)\n\n\n\n\n\n  \n    \n  \n\n\n\n  \n    \n  \n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCode\nPairPlots.pairplot(chn_pmcmc, PairPlots.Truth( true_solution.parameter))\n\n\n\n\n\n\n\n\n\n\n\nCode\nPairPlots.pairplot(chn_pmcmc[:, :, 1], chn_pmcmc[:, :, 2],\n                   chn_pmcmc[:, :, 3], chn_pmcmc[:, :, 4])\n\n\n\n\n\n\n\n\n\n\n\nCode\nlet\n    n = 1000\n    prior_df = (;\n        r = exp.(rand(Normal(log(0.1), 1.0), n)),\n        K = exp.(rand(Normal(log(200.0), 1.0), n)),\n        σ_p = exp.(rand(Normal(log(0.1), 0.5), n)),\n        σ_o = exp.(rand(Normal(log(10), 1.0), n)),\n        x₀ = exp.(rand(Normal(log(10.0), 0.5), n)))\n\n    PairPlots.pairplot(\n        PairPlots.Series(prior_df, label = \"prior\", color = (:black, 0.4)),\n        PairPlots.Series(chn_pmcmc, label = \"posterior\", color = (:red, 0.5)))\nend",
+    "text": "6 Convergence diagnostics\n\n\nCode\nburnin = nsamples ÷ 3\nthin = 50\nchn_pmcmc = MCMCChains.Chains(post_pmcmc[burnin:thin:end, :, :], collect(fieldnames(Param)))\n\n\n\nChains MCMC chain (134×5×4 Array{Float64, 3}):\n\nIterations        = 1:1:134\nNumber of chains  = 4\nSamples per chain = 134\nparameters        = r, K, σ_p, σ_o, x₀\n\nSummary Statistics\n  parameters       mean       std      mcse   ess_bulk   ess_tail      rhat    ⋯\n      Symbol    Float64   Float64   Float64    Float64    Float64   Float64    ⋯\n\n           r     0.1126    0.0141    0.0010   204.5060   385.1786    1.0092    ⋯\n           K   376.4232   23.6328    0.9430   625.2423   521.3496    1.0064    ⋯\n         σ_p     0.0497    0.0077    0.0004   307.2717   467.6395    1.0064    ⋯\n         σ_o    20.3687    2.1035    0.1179   319.0889   437.2648    1.0073    ⋯\n          x₀    14.3099    2.7268    0.2636   105.9022   220.8440    1.0131    ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0842     0.1026     0.1135     0.1226     0.1396\n           K   336.3880   360.3068   374.1082   390.6020   427.6683\n         σ_p     0.0366     0.0442     0.0494     0.0544     0.0656\n         σ_o    16.8136    18.7849    20.2498    21.7945    24.7372\n          x₀     9.7134    12.3538    13.9464    15.9611    20.9282\n\n\n\n\n\n\nCode\nStatsPlots.plot(chn_pmcmc)\n\n\n\n\n\n  \n    \n  \n\n\n\n  \n    \n  \n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCode\nPairPlots.pairplot(chn_pmcmc, PairPlots.Truth( true_solution.parameter))\n\n\n\n\n\n\n\n\n\n\n\nCode\nPairPlots.pairplot(chn_pmcmc[:, :, 1], chn_pmcmc[:, :, 2],\n                   chn_pmcmc[:, :, 3], chn_pmcmc[:, :, 4])\n\n\n\n\n\n\n\n\n\n\n\nCode\nlet\n    n = 1000\n    prior_df = (;\n        r = exp.(rand(Normal(log(0.1), 1.0), n)),\n        K = exp.(rand(Normal(log(200.0), 1.0), n)),\n        σ_p = exp.(rand(Normal(log(0.1), 0.5), n)),\n        σ_o = exp.(rand(Normal(log(10), 1.0), n)),\n        x₀ = exp.(rand(Normal(log(10.0), 0.5), n)))\n\n    PairPlots.pairplot(\n        PairPlots.Series(prior_df, label = \"prior\", color = (:black, 0.4)),\n        PairPlots.Series(chn_pmcmc, label = \"posterior\", color = (:red, 0.5)))\nend",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
     ]
   },
   {
-    "objectID": "src/pMCMC_logistic_growth.html#posterior-predictive-checks",
-    "href": "src/pMCMC_logistic_growth.html#posterior-predictive-checks",
-    "title": "Logistic growth - state space model",
+    "objectID": "src/logistic_growth_pMCMC.html#posterior-predictive-checks",
+    "href": "src/logistic_growth_pMCMC.html#posterior-predictive-checks",
+    "title": "Logistic growth - state space model with pMCMC",
     "section": "7 Posterior predictive checks",
     "text": "7 Posterior predictive checks\n\n\nCode\nlet\n    q95 = mapslices(x -&gt; quantile(x, [0.025, 0.975]), hidden_state, dims=(2,3))\n    q5 = mapslices(x -&gt; quantile(x, [0.25, 0.75]), hidden_state, dims=(2,3))\n    q_median = mapslices(median, hidden_state, dims=(2,3))\n    hidden_state_samples = sample_hiddenstate(hidden_state, 50)\n\n    q_post = post_pred(chn_pmcmc, true_solution.ts; process_noise = false)\n    q_post1 = post_pred(chn_pmcmc, true_solution.ts; process_noise = true)\n    \n    \n    fig = Figure(size = (1200, 1500))\n\n    pax1 = Axis(fig[1, 1]; ylabel = \"particle filter\", xticklabelsvisible = false)\n    for i in 1:size(hidden_state_samples)[2]\n        scatter!(true_solution.ts, hidden_state_samples[:, i], color = (:black, 0.5),\n                 markersize = 3)\n    end\n    lines!(true_solution.ts, true_solution.x, color = :blue,\n           label = \"true hidden state: x\")\n\n    pax2 = Axis(fig[1, 2]; yticklabelsvisible = false, xticklabelsvisible = false)\n    b1 = band!(true_solution.ts, q95[:, 1], q95[:, 2], color = (:black, 0.2),\n                label = \"95% credible interval\")\n    b2 = band!(true_solution.ts, q5[:, 1], q5[:, 2], color = (:black, 0.5),\n                label = \"50% credible interval\")\n    m = lines!(true_solution.ts, q_median[:, 1], color = :black,\n                label = \"median\")\n    lines!(true_solution.ts, true_solution.x, color = :blue,\n            label = \"true hidden state: x\")\n    linkyaxes!(pax1, pax2)\n\n    max1 = Axis(fig[2, 1]; ylabel = \"model\", xticklabelsvisible = false)\n    for i in 1:50\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(chn_pmcmc, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K)) * x\n            xs[t] = x\n        end\n\n        global draw = lines!(true_solution.ts, xs, color = (:black, 0.2))\n    end\n    mod = lines!(true_solution.ts, true_solution.s, color = :red, linewidth = 3)\n\n    max2 = Axis(fig[2, 2]; yticklabelsvisible = false, xticklabelsvisible = false)\n    band!(true_solution.ts, q_post[:, 1], q_post[:, 5], color = (:black, 0.2),\n          label = \"95% credible interval\")\n    band!(true_solution.ts, q_post[:, 2], q_post[:, 4], color = (:black, 0.5),\n          label = \"50% credible interval\")\n    lines!(true_solution.ts, q_post[:, 3], color = :black, label = \"median\")\n    mod = lines!(true_solution.ts, true_solution.s, color = :red, linewidth = 3)\n    linkyaxes!(max1, max2)\n\n\n    Axis(fig[3, 1]; ylabel = \"state\", xticklabelsvisible = false)\n    for i in 1:50\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(chn_pmcmc, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n        σ_p = p[var = :σ_p][1]\n\n\n        ε_t_dist = Normal(0, σ_p)\n        ε = rand(ε_t_dist, length(true_solution.ts))\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K) + ε[t]) * x\n            xs[t] = x\n        end\n\n        draw_err = lines!(true_solution.ts, xs, color = (:black, 0.2))\n    end\n    st = lines!(true_solution.ts, true_solution.x, color = :blue, linewidth = 3)\n\n    Axis(fig[3, 2]; yticklabelsvisible = false)\n    band!(true_solution.ts, q_post1[:, 1], q_post1[:, 5], color = (:black, 0.2),\n          label = \"95% credible interval\")\n    band!(true_solution.ts, q_post1[:, 2], q_post1[:, 4], color = (:black, 0.5),\n            label = \"50% credible interval\")\n    lines!(true_solution.ts, q_post1[:, 3], color = :black, label = \"median\")\n    st = lines!(true_solution.ts, true_solution.x, color = :blue, linewidth = 3)\n\n\n    Axis(fig[4, 1]; xlabel = \"time\", ylabel = \"observations\")\n    for i in 1:50\n        xs = Array{Float64}(undef, length(true_solution.ts))\n\n        p = sample(chn_pmcmc, 1).value\n        x = p[var = :x₀][1]\n        r = p[var = :r][1]\n        K = p[var = :K][1]\n        σ_p = p[var = :σ_p][1]\n        σ_o = p[var = :σ_o][1]\n\n        ε_t_dist = Normal(0, σ_p)\n        ε = rand(ε_t_dist, length(true_solution.ts))\n\n        for t in true_solution.ts\n            x = (1 + r*(1-x/K) + ε[t]) * x\n\n            if x &gt; 0\n                xs[t] = rand(Gamma(x^2 / σ_o^2, σ_o^2 / x))\n            else\n                xs[t] = NaN\n            end\n        end\n\n        global obs_gen = scatter!(true_solution.ts, xs, color = (:black, 0.3),\n                                  markersize = 3)\n    end\n    obs = scatter!(true_solution.ts, true_solution.y, color = :steelblue4, linewidth = 5)\n\n    Legend(fig[4, 2],\n           [[mod, st, obs],\n            [b1, b2, m, draw,\n             MarkerElement(marker = :circle, markersize = 8, color = (:black, 0.5))]],\n           [[\"Model\", \"Hidden state\", \"Observations\"],\n            [\"95% credible interval\", \"50% credible interval\", \"Median\",\n             \"Draws\", \"Generated observations\"]],\n           [\"Underlying data/model\", \"Particle filter and model estimation\"];\n           tellwidth = false)\n\n    colgap!(fig.layout, 1, 0)\n    [rowgap!(fig.layout, i, 0) for i in 1:3]\n    fig\nend",
     "crumbs": [
       "Home",
       "State Space Models",
+      "Logistic growth",
       "pMCMC"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v1.html",
+    "href": "src/logistic_growth_MCMC_wo_states_v1.html",
+    "title": "Logistic growth - MCMC without modelling the hidden states v1",
+    "section": "",
+    "text": "Code\nimport Random\nimport StatsPlots\n\nusing AdaptiveMCMC\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing MCMCChains\nusing PairPlots\nusing ProtoStructs\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v1"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v1.html#rhat-and-estimated-sampling-size",
+    "href": "src/logistic_growth_MCMC_wo_states_v1.html#rhat-and-estimated-sampling-size",
+    "title": "Logistic growth - MCMC without modelling the hidden states v1",
+    "section": "6.1 Rhat and estimated sampling size",
+    "text": "6.1 Rhat and estimated sampling size\n\n\nCode\np_names = collect(keys(problem.prior_dists))\nburnin = nsamples ÷ thin ÷ 2\n\nchn = Chains(post[burnin:end, :, :], p_names)\n\n\n\nChains MCMC chain (5001×4×4 Array{Float64, 3}):\n\nIterations        = 1:1:5001\nNumber of chains  = 4\nSamples per chain = 5001\nparameters        = r, K, x₀, σ_o\n\nSummary Statistics\n  parameters       mean       std      mcse     ess_bulk     ess_tail      rha ⋯\n      Symbol    Float64   Float64   Float64      Float64      Float64   Float6 ⋯\n\n           r     0.0813    0.0052    0.0000   20161.4627   19506.9542    1.000 ⋯\n           K   387.2089    7.6274    0.0537   20176.8304   19687.9238    1.000 ⋯\n          x₀    27.9200    3.1544    0.0222   20285.5176   19121.5713    1.000 ⋯\n         σ_o    32.9005    1.9322    0.0136   20173.0757   19824.2450    1.000 ⋯\n                                                               2 columns omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0717     0.0777     0.0810     0.0846     0.0920\n           K   372.7365   382.0207   387.0613   392.1432   402.8794\n          x₀    21.9440    25.7643    27.8505    29.9939    34.3157\n         σ_o    29.3240    31.5760    32.8216    34.1645    36.9307",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v1"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v1.html#pair-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v1.html#pair-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v1",
+    "section": "6.2 Pair plot for model parameter",
+    "text": "6.2 Pair plot for model parameter\n\n\nCode\npairplot(chn, PairPlots.Truth(true_solution.parameter))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v1"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v1.html#trace-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v1.html#trace-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v1",
+    "section": "6.3 Trace plot for model parameter",
+    "text": "6.3 Trace plot for model parameter\n\n\nCode\nStatsPlots.plot(chn)",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v1"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth.html",
+    "href": "src/logistic_growth.html",
+    "title": "Logistic growth model - Overview",
+    "section": "",
+    "text": "1 Introduction\nWe assume that we observe a population of organisms that grow according to the logistic growth model. We observe the population size at discrete time points.\nThis can be modelled with a state space model (synonyms are partially-observed Markov processes, hidden Markov model and nonlinear stochastic dynamical systems).\n\n\n\n\n\n\n\nHMM\n\n\n\nS1\n\ns(t-1)\n\n\n\nX1\n\nx(t-1)\n\n\n\nS1-&gt;X1\n\n\nεₜ₋₁\n\n\n\nS2\n\ns(t)\n\n\n\nX2\n\nx(t)\n\n\n\nS2-&gt;X2\n\n\n\n\n\nS3\n\ns(t+1)\n\n\n\nX3\n\nx(t+1)\n\n\n\nS3-&gt;X3\n\n\n\n\n\nSend\n\ns(T)\n\n\n\nXend\n\nx(T)\n\n\n\nSend-&gt;Xend\n\n\n\n\n\n\nX0\n\nx(0)\n\n\n\nXstart-&gt;X0\n\n\np(x₀)\n\n\n\nX0-&gt;S1\n\n\n                                       \n\n\n\nX1-&gt;S2\n\n\np(xₜ | xₜ₋₁)\n\n\n\nY1\n\ny(t-1)\n\n\n\nX1-&gt;Y1\n\n\nηₜ₋₁\n\n\n\nX2-&gt;S3\n\n\n\n\n\nY2\n\ny(t)\n\n\n\nX2-&gt;Y2\n\n\np(yₜ | xₜ)\n\n\n\nX3-&gt;Send\n\n\n                                       \n\n\n\nY3\n\ny(t+1)\n\n\n\nX3-&gt;Y3\n\n\n\n\n\nYend\n\ny(T)\n\n\n\nXend-&gt;Yend\n\n\n\n\n\n\n\n\n\n\n\n\\(s(t)\\): state that is modelled with a process-based model at time \\(t\\)\n\\(x(t)\\): true hidden state at time \\(t\\)\n\\(y(t)\\): observation at time \\(t\\)\n\\(p(x(t) | x(t-1))\\): transition probability between the true states\n\\(p(y(t) | x(t))\\): observation probability\n\\(p(x₀)\\): prior for the initial state of the true states\n\\(εₜ₋₁\\): process error\n\\(ηₜ₋₁\\): observation error\n\n\n\n2 Process model\n\\[\n\\begin{align}\n    &x_{t} = \\left(1 + r\\left(1 - \\frac{x_{t-1}}{K}\\right) + \\varepsilon_{t}\\right) \\cdot x_{t-1} \\\\\n    &\\varepsilon_{t} \\sim \\mathcal{N}(0, \\sigma_{p}^2)\n\\end{align}\n\\]\nthereby we assume that the process error \\(\\varepsilon\\) scales with the population size.\n\n\n3 Observation model\nWe use a gamma distribution for the observation model: \\[\n\\begin{align}\n    &\\alpha_t = \\frac{x_{t}^2}{\\sigma_o^2} \\\\\n    &\\theta_t = \\frac{\\sigma_o^2}{x_{t}} \\\\\n    &y_t \\sim \\text{Gamma}(\\alpha_t, \\theta_t)\n\\end{align}\n\\]\nsimilarly we could also use a normal distribution for the observation model: \\[\n    y_t \\sim \\mathcal{N}(x_{t}, \\sigma_o^2)\n\\]\n\n\n4 Parameters\nWe will use the folling parameters for the simulation experiment:\n\n\n\nParameter\nDescription\nValue\n\n\n\n\n\\(\\sigma_p\\)\nstandard deviation of the process error\n0.05\n\n\n\\(\\sigma_o\\)\nstandard deviation of the observation error\n20.0\n\n\n\\(r\\)\ngrowth rate\n0.1\n\n\n\\(K\\)\ncarrying capacity\n400\n\n\n\\(x_0\\)\ninitial population size\n20\n\n\n\n\n\n5 Generate data\n\n\nCode\nimport Random\nusing CairoMakie\nusing Distributions\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))\n\nfunction generate_data(n_observations; σ_p, σ_o, r, K, x₀)\n    ts = 1:n_observations\n    T = length(ts)\n\n    s = Array{Float64}(undef, T)\n    x = Array{Float64}(undef, T)\n    y = Array{Float64}(undef, T)\n    ε = rand(Normal(0, σ_p), T)\n\n    for t in ts\n        x_lastt = t == 1 ? x₀ : x[t-1]\n        s_lastt = t == 1 ? x₀ : s[t-1]\n\n        s[t] = (1 + r*(1 - s_lastt/K)) * s_lastt\n        x[t] = (1 + r*(1 - x_lastt/K) + ε[t]) * x_lastt\n        y[t] = rand(Gamma(x[t]^2 / σ_o^2, σ_o^2 / x[t]))\n    end\n\n    (; ts, s, x, y, parameter = (; σ_o, r, K, x₀))\nend\n\nRandom.seed!(123)\ntrue_solution = generate_data(100; σ_p = 0.05, σ_o = 20.0, r = 0.1, K = 400, x₀ = 20.0);\n\nlet\n    fig = Figure(size = (900, 600))\n\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"population size\")\n    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = \"observations: y\")\n    lines!(true_solution.ts, true_solution.x, color = :blue, label = \"true hidden state: x\")\n    lines!(true_solution.ts, true_solution.s, color = :red, label = \"process-model state: s\")\n    Legend(fig[1, 2], ax)\n    fig\nend\n\n\n\n\n\n\n\n\n\n\n\n6 Parameter inference\n\n\n\n\n\n\n\nExperiment\nDescription\n\n\n\n\nMCMC without states v1\nwe will just ignore the process error\n\n\nMCMC without states v2\nwe included the process error but we won’t model the hidden state\n\n\nMCMC without states v3\nwe included the process error and use one step ahead prediction but we won’t model the hidden state\n\n\nstate space - MCMC\nwe include the hidden state (the process error over time) as parameters in addition to the model parameters\n\n\nstate space - pMCMC\nwe will infer the hidden state with a sequential monte carlo method (= particle filter) and use MCMC for the model parameters\n\n\n\n\nAn introduction to pMCMC: sbfnk.github.io/mfiidd/slides/smc.pdf\nAnother intro to pMCMC: kingaa.github.io/sbied/pfilter/slides.pdf\n\nfor an introduction to state space models in ecology see Auger-Méthé et al. (2021)\n\n\n\n\n\nReferences\n\nAuger-Méthé, Marie, Ken Newman, Diana Cole, Fanny Empacher, Rowenna Gryba, Aaron A. King, Vianey Leos-Barajas, et al. 2021. “A Guide to State–Space Modeling of Ecological Time Series.” Ecological Monographs 91 (4): e01470. https://doi.org/10.1002/ecm.1470.",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v2.html",
+    "href": "src/logistic_growth_MCMC_wo_states_v2.html",
+    "title": "Logistic growth - MCMC without modelling the hidden states v2",
+    "section": "",
+    "text": "Code\nimport Random\nimport StatsPlots\n\nusing AdaptiveMCMC\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing MCMCChains\nusing PairPlots\nusing ProtoStructs\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v2"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v2.html#rhat-and-estimated-sampling-size",
+    "href": "src/logistic_growth_MCMC_wo_states_v2.html#rhat-and-estimated-sampling-size",
+    "title": "Logistic growth - MCMC without modelling the hidden states v2",
+    "section": "6.1 Rhat and estimated sampling size",
+    "text": "6.1 Rhat and estimated sampling size\n\n\nCode\np_names = collect(keys(problem.prior_dists))\nburnin = nsamples ÷ thin ÷ 2\n\nchn = Chains(post[burnin:end, :, :], p_names)\n\n\n\nChains MCMC chain (5001×5×4 Array{Float64, 3}):\n\nIterations        = 1:1:5001\nNumber of chains  = 4\nSamples per chain = 5001\nparameters        = r, K, x₀, σ_o, σ_p\n\nSummary Statistics\n  parameters       mean       std      mcse   ess_bulk   ess_tail      rhat    ⋯\n      Symbol    Float64   Float64   Float64    Float64    Float64   Float64    ⋯\n\n           r     0.0922    0.0051    0.0008    41.7129    42.3606    2.2790    ⋯\n           K   394.1455   17.2363    2.7178    40.3628        NaN    5.8685    ⋯\n          x₀    23.2861    3.3008    0.5184    40.9575        NaN    2.9960    ⋯\n         σ_o    25.4705    1.7812    0.2793    40.8037        NaN    3.8455    ⋯\n         σ_p     0.0413    0.0082    0.0013    40.6588    48.1797    4.1841    ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0816     0.0884     0.0924     0.0964     0.0994\n           K   358.1780   388.1525   397.0915   404.1561   420.0461\n          x₀    18.9239    21.4854    23.2282    25.0299    30.1694\n         σ_o    22.8621    23.9970    25.2035    27.2304    28.4546\n         σ_p     0.0266     0.0381     0.0395     0.0438     0.0565",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v2"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v2.html#pair-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v2.html#pair-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v2",
+    "section": "6.2 Pair plot for model parameter",
+    "text": "6.2 Pair plot for model parameter\n\n\nCode\npairplot(chn, PairPlots.Truth(true_solution.parameter))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v2"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC_wo_states_v2.html#trace-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC_wo_states_v2.html#trace-plot-for-model-parameter",
+    "title": "Logistic growth - MCMC without modelling the hidden states v2",
+    "section": "6.3 Trace plot for model parameter",
+    "text": "6.3 Trace plot for model parameter\n\n\nCode\nStatsPlots.plot(chn)",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC without states v2"
     ]
   },
   {
@@ -408,6 +480,54 @@
       "Home",
       "General methods",
       "Random walk Metropolis"
+    ]
+  },
+  {
+    "objectID": "src/particle_filter.html",
+    "href": "src/particle_filter.html",
+    "title": "Simple State Space Model - Only Filtering",
+    "section": "",
+    "text": "HMM\n\n\n\nS1\n\ns(t-1)\n\n\n\nX1\n\nx(t-1)\n\n\n\nS1-&gt;X1\n\n\nεₜ₋₁\n\n\n\nS2\n\ns(t)\n\n\n\nX2\n\nx(t)\n\n\n\nS2-&gt;X2\n\n\n\n\n\nS3\n\ns(t+1)\n\n\n\nX3\n\nx(t+1)\n\n\n\nS3-&gt;X3\n\n\n\n\n\nSend\n\ns(T)\n\n\n\nXend\n\nx(T)\n\n\n\nSend-&gt;Xend\n\n\n\n\n\n\nX0\n\nx(0)\n\n\n\nXstart-&gt;X0\n\n\np(x₀)\n\n\n\nX0-&gt;S1\n\n\n                                       \n\n\n\nX1-&gt;S2\n\n\np(xₜ | xₜ₋₁)\n\n\n\nY1\n\ny(t-1)\n\n\n\nX1-&gt;Y1\n\n\nηₜ₋₁\n\n\n\nX2-&gt;S3\n\n\n\n\n\nY2\n\ny(t)\n\n\n\nX2-&gt;Y2\n\n\np(yₜ | xₜ)\n\n\n\nX3-&gt;Send\n\n\n                                       \n\n\n\nY3\n\ny(t+1)\n\n\n\nX3-&gt;Y3\n\n\n\n\n\nYend\n\ny(T)\n\n\n\nXend-&gt;Yend\n\n\n\n\n\n\n\n\nFigure 1: Forward algorithm for a hidden markov model.",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Particle filter"
+    ]
+  },
+  {
+    "objectID": "src/particle_filter.html#load-packages-and-makie-theme",
+    "href": "src/particle_filter.html#load-packages-and-makie-theme",
+    "title": "Simple State Space Model - Only Filtering",
+    "section": "1 Load packages and Makie theme",
+    "text": "1 Load packages and Makie theme\n\nimport Random\nimport StatsBase\n\nusing CairoMakie\nusing Distributions\nusing Statistics\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Particle filter"
+    ]
+  },
+  {
+    "objectID": "src/particle_filter.html#generate-some-data",
+    "href": "src/particle_filter.html#generate-some-data",
+    "title": "Simple State Space Model - Only Filtering",
+    "section": "2 Generate some data",
+    "text": "2 Generate some data\n\n# Random.seed!(123)\n\nσ_p = 1.0\nσ_o = 5.0\nβ = 1.0\nα = 1.0\nz₀ = 5.0\nε_t_dist = Normal(0, σ_p)\nη_t_dist = Normal(0, σ_o)\n\nts = 1:50\nz = Array{Float64}(undef, length(ts))\ny = Array{Float64}(undef, length(ts))\n\nfor t in ts\n    z_lastt = t == 1 ? z₀ : z[t-1]\n\n    ε_t = rand(ε_t_dist)\n    z[t] = β * z_lastt + ε_t\n    \n    η_t = rand(η_t_dist)    \n    y[t] = α * z[t] + η_t\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n    Legend(fig[1, 2], ax)\n    fig\nend",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Particle filter"
+    ]
+  },
+  {
+    "objectID": "src/particle_filter.html#find-state-values",
+    "href": "src/particle_filter.html#find-state-values",
+    "title": "Simple State Space Model - Only Filtering",
+    "section": "3 Find state values",
+    "text": "3 Find state values\n\nnum_particles = 200\nprior_dist = truncated(Normal(0, 50); )\nlog_prior(z) = logpdf(prior_dist, z)\nlog_likelihood(y, z) = logpdf(Normal(α * z, σ_o), y)\ncalc_weights(y, z) = log_likelihood.(y, z)\n\nparticles = rand(prior_dist, num_particles)\nparticle_mat = zeros(length(ts), num_particles)\nll = zeros(length(ts))\n\nfor t in ts\n    weights = calc_weights(y[t], particles)\n    max_weight = maximum(weights)\n    scaled_weights = exp.(weights .- max_weight)\n    ll[t] = mean(weights)\n\n    indices = sample(1:num_particles, StatsBase.Weights(scaled_weights), num_particles; replace = true)\n    particles = particles[indices]\n    particle_mat[t, :] = particles\n    particles = β .* particles .+ rand(ε_t_dist, num_particles)\nend\n\nlet\n    fig = Figure(size = (900, 400))\n    ax = Axis(fig[1, 1]; xlabel = \"time\", ylabel = \"value\")\n    for t in ts\n        scatter!(fill(t, num_particles), particle_mat[t, :], \n            color = (:black, 0.05), \n            label = t == 1 ? \"particles\" : nothing)\n    end\n    scatterlines!(ts, z, color = :blue, label = \"state: z\")\n    scatterlines!(ts, y, color = :red, label = \"observations: y\", linestyle = :dash)\n   \n    Legend(fig[1, 2], ax)\n    fig\nend",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Particle filter"
     ]
   },
   {
@@ -487,11 +607,76 @@
     "href": "src/RWM_ode.html",
     "title": "Metropolis-Algorithm for parameters estimation of ODEs",
     "section": "",
-    "text": "the script is adapted from the Bayesian Estimation of Differential Equations tutorial from Turing.jl, but instead of relying on the Nuts algorithm of Turing.jl, a simple Metroplis algorithm is coded here from scratch\n\n1 Load packages and Makie theme\n\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing OrdinaryDiffEq\nusing Random\nusing Statistics\n\nset_theme!(\n    fontsize=18,\n    Axis=(xgridvisible=false, ygridvisible=false,\n          topspinevisible=false, rightspinevisible=false),\n)\n\n\n\n2 Define ODE-System\n\nfunction lotka_volterra(du, u, p, t)\n    α, β, γ, δ = p\n    x, y = u\n    \n    du[1] = (α - β * y) * x \n    du[2] = (δ * x - γ) * y \n\n    return nothing\nend\n\nlotka_volterra (generic function with 1 method)\n\n\n\n\n3 Generate a test data set\n\nfunction generate_data(rng; p)\n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    \n    sol = solve(prob, Tsit5();\n                saveat=0.1)\n    estim_dat = Array(sol) .+ rand(rng, Normal(0, 0.5), size(Array(sol)))\n    \n    return estim_dat, sol.t\nend\n\ngenerate_data (generic function with 1 method)\n\n\n\n\n4 Function to calculate the unnormalized posterior density\n\nfunction unnormalized_posterior(θ, prior_dists, data, t)\n    σ, α, β, γ, δ = θ\n    nparameter = length(θ)\n    \n    ## prior \n    if σ &lt;= 0\n        return -Inf\n    end\n    \n    prior = 0\n    for i in 1:nparameter\n        prior += logpdf(prior_dists[i], θ[i])\n    end\n    if prior == -Inf\n        return -Inf\n    end\n\n    ## likelihood\n    p = [α, β, γ, δ]\n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    predicted = solve(prob, Tsit5(); p=p, saveat=t)\n\n    likelihood = 0\n    for i in 1:length(predicted)\n        likelihood += logpdf(MvNormal(predicted[i], σ^2 * I), data[:, i])\n    end\n    \n    return prior + likelihood\nend\n\nunnormalized_posterior (generic function with 1 method)\n\n\n\n\n5 Function to simulate the Markov chains\n\nfunction run_chains(rng, data, t; \n                    σ_prop,\n                    nchains=5,\n                    nsamples=5_000)\n\n    ## priors\n    σ_prior = truncated(InverseGamma(2, 3); lower=0, upper=1)\n    α_prior = truncated(Normal(1.5, 0.5); lower=0.8, upper=2.5)\n    β_prior = truncated(Normal(1.2, 0.5); lower=0, upper=2)\n    γ_prior = truncated(Normal(3.0, 0.5); lower=1, upper=4)\n    δ_prior = truncated(Normal(1.0, 0.5); lower=0, upper=2)\n    prior_dists = [σ_prior, α_prior, β_prior, γ_prior, δ_prior]\n    \n    nparameter = 5\n    accepted_θ = zeros(nchains, nparameter, nsamples)\n    accepted = zeros(nchains)\n    θ = zeros(nchains, nparameter)\n    \n    Threads.@threads for n in 1:nchains        \n        ## start values for the parameters in the chain\n        ## rough guesses are used here \n        ## it would also possible to use the prior distributions as follows: \n        ## for i in 1:nparameter\n        ##     θ[n, i] = rand(rng, prior_dists[i])\n        ## end\n        θ[n, :] = [0.7, 1.4, 0.9, 3.1, 1.1] .+ rand(rng, Normal(0, 0.1), 5)\n        post = unnormalized_posterior(θ[n, :], prior_dists, data, t)\n        \n        for k in 1:nsamples\n            ## new proposal\n            proposal_dist = MvNormal(θ[n, :], σ_prop)\n            θstar = rand(rng, proposal_dist) \n            \n            ## evaluate prior + likelihood\n            poststar = unnormalized_posterior(θstar, prior_dists, data, t)\n            \n            ## Metropolis ratio\n            ratio = poststar - post\n\n            if log(rand(rng)) &lt; min(ratio, 1)\n                accepted[n] += 1\n                θ[n, :] = θstar\n                post = poststar\n            end\n            \n            accepted_θ[n, :, k] = θ[n, :]\n        end\n \n    end\n    \n    return accepted_θ, accepted / nsamples\nend\n\nrun_chains (generic function with 1 method)\n\n\n\n\n6 Trace plots and densities\n\nfunction plot_trace_dens(; θ, burnin=nothing)\n    fig = Figure(size=(800, 800))\n    \n    titles = [\"σ\", \"α\", \"β\", \"γ\", \"δ\"]\n    nchains, nparameter, nsamples = size(θ)\n    burnin = isnothing(burnin) ? max(Int(0.5*nsamples), 1) : burnin\n    \n    for i in 1:nparameter\n        Axis(fig[i,1]; title = titles[i])\n        \n        for n in 1:nchains\n            lines!((burnin:nsamples) .- burnin, θ[n, i, burnin:end];\n                color=(Makie.wong_colors()[n], 0.5))\n        end\n        \n        Axis(fig[i,2])\n        for n in 1:nchains\n            density!(θ[n, i, burnin:end];\n                    bins=20, \n                    color= (Makie.wong_colors()[n], 0.05),\n                    strokecolor = (Makie.wong_colors()[n], 1),\n                    strokewidth = 2, strokearound = false)\n        end\n\n    end\n    rowgap!(fig.layout, 1, 5)\n    \n    return fig\nend\n\nplot_trace_dens (generic function with 1 method)\n\n\n\n\n7 Posterior predictive check\n\nfunction posterior_check(rng; θ, data, t, p, npost_samples=500, burnin=nothing)\n\n    nchains, nparameter, nsamples = size(θ)\n    burnin = isnothing(burnin) ? max(Int(0.5*nsamples), 1) : burnin\n    \n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    \n    fig = Figure()\n    Axis(fig[1,1]; xlabel=\"Time\", ylabel=\"Density\")\n    \n    ## select posterior draws and plot solutions\n    selected_chains = rand(rng, 1:nchains, npost_samples)\n    selected_samples = rand(rng, burnin:nsamples, npost_samples)\n    for k in 1:npost_samples\n        θi = θ[selected_chains[k], :, selected_samples[k]]\n        p_i = θi[2:5]\n \n        prob = ODEProblem(lotka_volterra, u0, tspan, p_i)\n        sol = solve(prob, Tsit5(); saveat=0.01)\n        \n        lines!(sol.t, sol[1, :], color=(Makie.wong_colors()[1], 0.05))\n        lines!(sol.t, sol[2, :], color=(Makie.wong_colors()[2], 0.05))\n    end\n    \n    ## true solution\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    sol = solve(prob, Tsit5(); p=p, saveat=0.01)\n    \n    lines!(sol.t, sol[1, :], \n           color=:black,\n           linewidth=2)\n    lines!(sol.t, sol[2, :], \n           color=:black,\n           linewidth=2)\n    \n    ## measured data\n    scatter!(t, data[1, :])\n    scatter!(t, data[2, :])\n\n   return fig\nend\n\nposterior_check (generic function with 1 method)\n\n\n\n\n8 Run everything\n\nrng = MersenneTwister(123)\n\n## \"true\" parameter values\np = [1.5, 1.0, 3.0, 1.0]\ndata, t = generate_data(rng; p)\n\n## Simulate.\nσ_prop = Diagonal([0.001, 0.001, 0.001, 0.001, 0.001])\nθ, acceptance_rate = run_chains(rng, data, t;\n                                σ_prop,\n                                nsamples=200_000)\nacceptance_rate\n\n5-element Vector{Float64}:\n 0.03831\n 0.0378\n 0.03899\n 0.037795\n 0.037895\n\n\n\nplot_trace_dens(; θ, burnin=50_000)\n\n\n\n\n\n\n\n\n\nposterior_check(rng; θ, data, t, p, burnin=50_000)\n\n\n\n\n\n\n\n\nthe black line is generated with the parameters that are also used to produce the test data set, orange and blue lines are produced with posterior draws, the circles represent the test data set:",
+    "text": "the script is adapted from the Bayesian Estimation of Differential Equations tutorial from Turing.jl, but instead of relying on the Nuts algorithm of Turing.jl, a simple Metroplis algorithm is coded here from scratch\n\n1 Load packages and Makie theme\n\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing OrdinaryDiffEq\nusing Random\nusing Statistics\n\nset_theme!(\n    fontsize=18,\n    Axis=(xgridvisible=false, ygridvisible=false,\n          topspinevisible=false, rightspinevisible=false),\n)\n\n\n\n2 Define ODE-System\n\nfunction lotka_volterra(du, u, p, t)\n    α, β, γ, δ = p\n    x, y = u\n    \n    du[1] = (α - β * y) * x \n    du[2] = (δ * x - γ) * y \n\n    return nothing\nend\n\nlotka_volterra (generic function with 1 method)\n\n\n\n\n3 Generate a test data set\n\nfunction generate_data(rng; p)\n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    \n    sol = solve(prob, Tsit5();\n                saveat=0.1)\n    estim_dat = Array(sol) .+ rand(rng, Normal(0, 0.5), size(Array(sol)))\n    \n    return estim_dat, sol.t\nend\n\ngenerate_data (generic function with 1 method)\n\n\n\n\n4 Function to calculate the unnormalized posterior density\n\nfunction unnormalized_posterior(θ, prior_dists, data, t)\n    σ, α, β, γ, δ = θ\n    nparameter = length(θ)\n    \n    ## prior \n    if σ &lt;= 0\n        return -Inf\n    end\n    \n    prior = 0\n    for i in 1:nparameter\n        prior += logpdf(prior_dists[i], θ[i])\n    end\n    if prior == -Inf\n        return -Inf\n    end\n\n    ## likelihood\n    p = [α, β, γ, δ]\n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    predicted = solve(prob, Tsit5(); p=p, saveat=t)\n\n    likelihood = 0\n    for i in 1:length(predicted)\n        likelihood += logpdf(MvNormal(predicted[i], σ^2 * I), data[:, i])\n    end\n    \n    return prior + likelihood\nend\n\nunnormalized_posterior (generic function with 1 method)\n\n\n\n\n5 Function to simulate the Markov chains\n\nfunction run_chains(rng, data, t; \n                    σ_prop,\n                    nchains=5,\n                    nsamples=5_000)\n\n    ## priors\n    σ_prior = truncated(InverseGamma(2, 3); lower=0, upper=1)\n    α_prior = truncated(Normal(1.5, 0.5); lower=0.8, upper=2.5)\n    β_prior = truncated(Normal(1.2, 0.5); lower=0, upper=2)\n    γ_prior = truncated(Normal(3.0, 0.5); lower=1, upper=4)\n    δ_prior = truncated(Normal(1.0, 0.5); lower=0, upper=2)\n    prior_dists = [σ_prior, α_prior, β_prior, γ_prior, δ_prior]\n    \n    nparameter = 5\n    accepted_θ = zeros(nchains, nparameter, nsamples)\n    accepted = zeros(nchains)\n    θ = zeros(nchains, nparameter)\n    \n    Threads.@threads for n in 1:nchains        \n        ## start values for the parameters in the chain\n        ## rough guesses are used here \n        ## it would also possible to use the prior distributions as follows: \n        ## for i in 1:nparameter\n        ##     θ[n, i] = rand(rng, prior_dists[i])\n        ## end\n        θ[n, :] = [0.7, 1.4, 0.9, 3.1, 1.1] .+ rand(rng, Normal(0, 0.1), 5)\n        post = unnormalized_posterior(θ[n, :], prior_dists, data, t)\n        \n        for k in 1:nsamples\n            ## new proposal\n            proposal_dist = MvNormal(θ[n, :], σ_prop)\n            θstar = rand(rng, proposal_dist) \n            \n            ## evaluate prior + likelihood\n            poststar = unnormalized_posterior(θstar, prior_dists, data, t)\n            \n            ## Metropolis ratio\n            ratio = poststar - post\n\n            if log(rand(rng)) &lt; min(ratio, 1)\n                accepted[n] += 1\n                θ[n, :] = θstar\n                post = poststar\n            end\n            \n            accepted_θ[n, :, k] = θ[n, :]\n        end\n \n    end\n    \n    return accepted_θ, accepted / nsamples\nend\n\nrun_chains (generic function with 1 method)\n\n\n\n\n6 Trace plots and densities\n\nfunction plot_trace_dens(; θ, burnin=nothing)\n    fig = Figure(size=(800, 800))\n    \n    titles = [\"σ\", \"α\", \"β\", \"γ\", \"δ\"]\n    nchains, nparameter, nsamples = size(θ)\n    burnin = isnothing(burnin) ? max(Int(0.5*nsamples), 1) : burnin\n    \n    for i in 1:nparameter\n        Axis(fig[i,1]; title = titles[i])\n        \n        for n in 1:nchains\n            lines!((burnin:nsamples) .- burnin, θ[n, i, burnin:end];\n                color=(Makie.wong_colors()[n], 0.5))\n        end\n        \n        Axis(fig[i,2])\n        for n in 1:nchains\n            density!(θ[n, i, burnin:end];\n                    bins=20, \n                    color= (Makie.wong_colors()[n], 0.05),\n                    strokecolor = (Makie.wong_colors()[n], 1),\n                    strokewidth = 2, strokearound = false)\n        end\n\n    end\n    rowgap!(fig.layout, 1, 5)\n    \n    return fig\nend\n\nplot_trace_dens (generic function with 1 method)\n\n\n\n\n7 Posterior predictive check\n\nfunction posterior_check(rng; θ, data, t, p, npost_samples=500, burnin=nothing)\n\n    nchains, nparameter, nsamples = size(θ)\n    burnin = isnothing(burnin) ? max(Int(0.5*nsamples), 1) : burnin\n    \n    u0 = [1.0, 1.0]\n    tspan = (0.0, 10.0)\n    \n    fig = Figure()\n    Axis(fig[1,1]; xlabel=\"Time\", ylabel=\"Density\")\n    \n    ## select posterior draws and plot solutions\n    selected_chains = rand(rng, 1:nchains, npost_samples)\n    selected_samples = rand(rng, burnin:nsamples, npost_samples)\n    for k in 1:npost_samples\n        θi = θ[selected_chains[k], :, selected_samples[k]]\n        p_i = θi[2:5]\n \n        prob = ODEProblem(lotka_volterra, u0, tspan, p_i)\n        sol = solve(prob, Tsit5(); saveat=0.01)\n        \n        lines!(sol.t, sol[1, :], color=(Makie.wong_colors()[1], 0.05))\n        lines!(sol.t, sol[2, :], color=(Makie.wong_colors()[2], 0.05))\n    end\n    \n    ## true solution\n    prob = ODEProblem(lotka_volterra, u0, tspan, p)\n    sol = solve(prob, Tsit5(); p=p, saveat=0.01)\n    \n    lines!(sol.t, sol[1, :], \n           color=:black,\n           linewidth=2)\n    lines!(sol.t, sol[2, :], \n           color=:black,\n           linewidth=2)\n    \n    ## measured data\n    scatter!(t, data[1, :])\n    scatter!(t, data[2, :])\n\n   return fig\nend\n\nposterior_check (generic function with 1 method)\n\n\n\n\n8 Run everything\n\nrng = MersenneTwister(123)\n\n## \"true\" parameter values\np = [1.5, 1.0, 3.0, 1.0]\ndata, t = generate_data(rng; p)\n\n## Simulate.\nσ_prop = Diagonal([0.001, 0.001, 0.001, 0.001, 0.001])\nθ, acceptance_rate = run_chains(rng, data, t;\n                                σ_prop,\n                                nsamples=200_000)\nacceptance_rate\n\n5-element Vector{Float64}:\n 0.03816\n 0.0378\n 0.03827\n 0.039195\n 0.037925\n\n\n\nplot_trace_dens(; θ, burnin=50_000)\n\n\n\n\n\n\n\n\n\nposterior_check(rng; θ, data, t, p, burnin=50_000)\n\n\n\n\n\n\n\n\nthe black line is generated with the parameters that are also used to produce the test data set, orange and blue lines are produced with posterior draws, the circles represent the test data set:",
     "crumbs": [
       "Home",
       "General methods",
       "RWM on ODE"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC.html",
+    "href": "src/logistic_growth_MCMC.html",
+    "title": "Logistic growth - state space model with MCMC",
+    "section": "",
+    "text": "Code\nimport Random\nimport StatsPlots\n\nusing AdaptiveMCMC\nusing CairoMakie\nusing Distributions\nusing LinearAlgebra\nusing LogDensityProblems\nusing MCMCChains\nusing PairPlots\nusing ProtoStructs\nusing Statistics\nusing TransformVariables\nusing TransformedLogDensities\nusing UnPack\n\nset_theme!(\n    fontsize = 18,\n    Axis = (; xgridvisible = false, ygridvisible = false,\n            topspinevisible = false, rightspinevisible = false),\n    Legend = (; framevisible = false))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC.html#rhat-and-estimated-sampling-size",
+    "href": "src/logistic_growth_MCMC.html#rhat-and-estimated-sampling-size",
+    "title": "Logistic growth - state space model with MCMC",
+    "section": "6.1 Rhat and estimated sampling size",
+    "text": "6.1 Rhat and estimated sampling size\n\n\nCode\n# collect parameter names\np_names = collect(keys(problem.prior_dists))[1:4]\nlast_pname = collect(keys(problem.prior_dists))[5]\nlast_pnames = [Symbol(last_pname, \"_\", i) for i in 1:length(true_solution.y)]\nappend!(p_names, last_pnames)\n\nburnin = nsamples ÷ thin ÷ 2\n\nchn = Chains(post[burnin:end, :, :], p_names)\nchn[:, 1:9, :]\n\n\n\nChains MCMC chain (5001×9×4 Array{Float64, 3}):\n\nIterations        = 1:1:5001\nNumber of chains  = 4\nSamples per chain = 5001\nparameters        = r, K, x₀, σ_o, ε_1, ε_2, ε_3, ε_4, ε_5\n\nSummary Statistics\n  parameters       mean       std      mcse    ess_bulk    ess_tail      rhat  ⋯\n      Symbol    Float64   Float64   Float64     Float64     Float64   Float64  ⋯\n\n           r     0.1091    0.0150    0.0004   1721.9622   1910.2185    1.0036  ⋯\n           K   411.5695   49.1072    1.5565   1159.6966    807.0328    1.0022  ⋯\n          x₀    13.8230    3.5217    0.0598   3456.9825   7107.3957    1.0013  ⋯\n         σ_o    18.1372    1.8768    0.0355   2758.2978   5764.8505    1.0021  ⋯\n         ε_1    -0.0086    0.0992    0.0015   4517.7647   8549.7246    1.0007  ⋯\n         ε_2    -0.0188    0.1004    0.0016   4043.1604   7433.0475    1.0007  ⋯\n         ε_3    -0.0014    0.0959    0.0014   4625.2885   8905.7508    1.0006  ⋯\n         ε_4    -0.0166    0.0977    0.0015   4379.2836   8720.8593    1.0007  ⋯\n         ε_5     0.0031    0.0956    0.0016   3733.2010   7250.9654    1.0014  ⋯\n                                                                1 column omitted\n\nQuantiles\n  parameters       2.5%      25.0%      50.0%      75.0%      97.5% \n      Symbol    Float64    Float64    Float64    Float64    Float64 \n\n           r     0.0806     0.0987     0.1087     0.1191     0.1394\n           K   329.4116   375.8507   406.6724   442.7579   521.2672\n          x₀     8.0782    11.2829    13.4574    15.9522    21.7183\n         σ_o    14.7987    16.8127    18.0061    19.3469    22.1594\n         ε_1    -0.2036    -0.0754    -0.0093     0.0579     0.1859\n         ε_2    -0.2155    -0.0861    -0.0188     0.0495     0.1774\n         ε_3    -0.1906    -0.0659    -0.0020     0.0630     0.1877\n         ε_4    -0.2078    -0.0820    -0.0166     0.0486     0.1746\n         ε_5    -0.1807    -0.0618     0.0025     0.0678     0.1914",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC.html#pair-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC.html#pair-plot-for-model-parameter",
+    "title": "Logistic growth - state space model with MCMC",
+    "section": "6.2 Pair plot for model parameter",
+    "text": "6.2 Pair plot for model parameter\n\n\nCode\npairplot(chn[:, 1:4, :], PairPlots.Truth(true_solution.parameter))",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC.html#trace-plot-for-model-parameter",
+    "href": "src/logistic_growth_MCMC.html#trace-plot-for-model-parameter",
+    "title": "Logistic growth - state space model with MCMC",
+    "section": "6.3 Trace plot for model parameter",
+    "text": "6.3 Trace plot for model parameter\n\n\nCode\nStatsPlots.plot(chn[:, 1:4, :])",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC"
+    ]
+  },
+  {
+    "objectID": "src/logistic_growth_MCMC.html#trace-plot-for-some-state-parameter",
+    "href": "src/logistic_growth_MCMC.html#trace-plot-for-some-state-parameter",
+    "title": "Logistic growth - state space model with MCMC",
+    "section": "6.4 Trace plot for (some) state parameter",
+    "text": "6.4 Trace plot for (some) state parameter\n\n\nCode\nStatsPlots.plot(chn[:, 5:9, :])",
+    "crumbs": [
+      "Home",
+      "State Space Models",
+      "Logistic growth",
+      "MCMC"
     ]
   }
 ]
