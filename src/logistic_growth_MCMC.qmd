@@ -313,7 +313,7 @@ function sample_posterior(data, problem, burnin)
 end
 
 let
-    fig = Figure(size = (800, 500))
+    fig = Figure(size = (800, 800))
     ax = Axis(fig[1, 1]; ylabel = "value")
     scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = "observations: y")
     lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")

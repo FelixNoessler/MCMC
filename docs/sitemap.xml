@@ -5,27 +5,39 @@
     <lastmod>2024-07-18T20:33:45.092Z</lastmod>
   </url>
   <url>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth_MCMC_wo_states_v3.html</loc>
+    <lastmod>2024-07-23T10:40:48.627Z</lastmod>
+  </url>
+  <url>
     <loc>https://FelixNoessler.github.io/MCMC/src/SMC.html</loc>
     <lastmod>2024-07-18T20:33:45.096Z</lastmod>
   </url>
   <url>
-    <loc>https://FelixNoessler.github.io/MCMC/src/particle_filter.html</loc>
-    <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+    <loc>https://FelixNoessler.github.io/MCMC/src/Gibbs.html</loc>
+    <lastmod>2024-07-23T05:56:58.064Z</lastmod>
   </url>
   <url>
-    <loc>https://FelixNoessler.github.io/MCMC/src/state_space_mcmc.html</loc>
-    <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth_pMCMC.html</loc>
+    <lastmod>2024-07-23T10:25:42.115Z</lastmod>
   </url>
   <url>
-    <loc>https://FelixNoessler.github.io/MCMC/src/state_space.html</loc>
-    <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth_MCMC_wo_states_v1.html</loc>
+    <lastmod>2024-07-23T10:26:45.680Z</lastmod>
   </url>
   <url>
-    <loc>https://FelixNoessler.github.io/MCMC/src/pMCMC_logistic_growth.html</loc>
-    <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth.html</loc>
+    <lastmod>2024-07-23T11:22:35.868Z</lastmod>
+  </url>
+  <url>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth_MCMC_wo_states_v2.html</loc>
+    <lastmod>2024-07-23T10:37:22.697Z</lastmod>
   </url>
   <url>
     <loc>https://FelixNoessler.github.io/MCMC/src/RWM.html</loc>
+    <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+  </url>
+  <url>
+    <loc>https://FelixNoessler.github.io/MCMC/src/particle_filter.html</loc>
     <lastmod>2024-07-18T20:33:45.096Z</lastmod>
   </url>
   <url>
@@ -35,5 +47,9 @@
   <url>
     <loc>https://FelixNoessler.github.io/MCMC/src/RWM_ode.html</loc>
     <lastmod>2024-07-18T20:33:45.096Z</lastmod>
+  </url>
+  <url>
+    <loc>https://FelixNoessler.github.io/MCMC/src/logistic_growth_MCMC.html</loc>
+    <lastmod>2024-07-23T10:18:53.928Z</lastmod>
   </url>
 </urlset>

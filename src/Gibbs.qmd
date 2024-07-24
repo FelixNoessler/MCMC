@@ -1,0 +1,174 @@
+---
+title: "Gibbs sampling"
+engine: julia
+bibliography: lit.bib
+format:
+    html:
+        toc: true
+        number-sections: true
+---
+
+
+# Introduction to the model
+
+We want to estimate the unknown parameters $\mu$ and $\sigma$ of a normal distribution. We will use the following model:
+$$
+\begin{align}
+    &y = \mu + \varepsilon \\
+    &\varepsilon \sim \mathcal{N}(0, \sigma) \\
+\end{align}
+$$
+
+and the following priors:
+$$
+\begin{align}
+    &\mu \sim \mathcal{N}(0, 5) \\
+    &\sigma \sim \mathcal{N}_+(0, 2)
+\end{align}
+$$
+
+# Gibbs sampling
+
+## Load packages
+
+We will use the `CairoMakie` package for plotting and the `Distributions` package for generating data and calculating the likelihood. We will also use the `MCMCChains` package for checking the convergence of the chains.
+
+```{julia}
+#| code-fold: true
+using CairoMakie
+using Distributions
+using MCMCChains
+
+set_theme!(
+    fontsize=18,
+    Axis=(xgridvisible=false, ygridvisible=false,
+          topspinevisible=false, rightspinevisible=false),
+)
+```
+
+## Generate data
+
+We generate 500 data points from a normal distribution with the true parameters $\mu = 5$ and $\sigma = 2$:
+
+```{julia}
+μ, σ = 5, 2
+y = rand(Normal(μ, σ), 500)
+hist(y)
+```
+
+## Sampling
+
+We start with random values for $\mu$ and $\sigma$ from the prior distributions. For each step, we either sample $\mu$ or $\sigma$ and keep the other parameter constant. The method is a special calse of the Metropolis-Hastings algorithm.
+
+```{julia}
+nchains = 6
+nsamples = 5_000
+burnin = nsamples ÷ 2
+θ = zeros(2, nsamples, nchains)
+
+μ_prior = Normal(0, 5)
+σ_prior = truncated(Normal(0, 2); lower = 0)
+
+proposals_sigma = [0.5, 0.5]
+
+for n in 1:nchains
+    θ[:, 1, n] =  [rand(μ_prior), rand(σ_prior)]
+    logprior_init = logpdf(μ_prior, θ[1, 1, n]) + logpdf(σ_prior, θ[2, 1, n])
+    loglikelihood_init = sum(logpdf.(Normal(θ[1, 1, n], θ[2, 1, n]), y))
+    current_logposterior = logprior_init + loglikelihood_init
+    current_μ, current_σ = θ[:, 1, n]
+
+    for i in 2:nsamples    
+        if i % 2 == 0
+            # sample new μ
+            current_μ = rand(Normal(θ[1, i-1, n], proposals_sigma[1]))
+            current_σ = θ[2, i-1, n]
+        else
+            # sample new σ
+            current_μ = θ[1, i-1, n]
+            current_σ = rand(Normal(θ[2, i-1, n], proposals_sigma[2]))   
+        end
+        
+        # prior
+        logprior = logpdf(μ_prior, current_μ) + logpdf(σ_prior, current_σ)
+        if logprior == -Inf
+            θ[:, i, n] = θ[:, i-1, n]
+            continue
+        end
+        
+        # likelihood
+        loglikelihood = sum(logpdf.(Normal(current_μ, current_σ), y))    
+        
+        # posterior
+        logposterior = logprior + loglikelihood
+        
+        r = logposterior - current_logposterior
+        if log(rand()) < r
+            θ[:, i, n] = [current_μ, current_σ]
+            current_logposterior = logposterior
+        else
+            θ[:, i, n] = θ[:, i-1, n]
+        end
+    end
+end
+```
+
+## Plot 
+```{julia}
+#| code-fold: true
+let 
+    fig = Figure(; size = (1200, 600))
+    Axis(fig[1, 1]; ylabel = "μ", title = "mcmc trace")
+    for n in 1:nchains
+        lines!(burnin:nsamples, θ[1, burnin:end, n])
+    end
+
+    Axis(fig[2, 1]; ylabel = "σ")
+    for n in 1:nchains
+        lines!(burnin:nsamples, θ[2, burnin:end, n])
+    end
+
+    Axis(fig[1, 2]; title = "posterior density")
+    density!(vec(θ[1, burnin:end, :]))
+    
+    Axis(fig[2, 2];)
+    density!(vec(θ[2, burnin:end, :]))
+    
+    Axis(fig[1, 3]; title = "posterior vs prior")
+    density!(vec(θ[1, burnin:end, :]))
+    plot!(μ_prior; color = :red)
+    
+    Axis(fig[2, 3];)
+    density!(vec(θ[2, burnin:end, :]))
+    plot!(σ_prior; color = :red)
+    
+    fig
+end
+```
+
+## Convergence diagnostics
+```{julia}
+#| code-fold: true
+Chains(permutedims(θ[:, burnin:end, :], (2, 1, 3)), [:μ, :σ])
+```
+
+## σ vs μ draws
+```{julia}
+#| code-fold: true
+let 
+    fig = Figure(; size = (900, 450))
+    Axis(fig[1, 1]; xlabel = "μ", ylabel = "σ", title = "with burn-in period")
+    for n in 1:nchains
+        scatterlines!(θ[1, :, n], θ[2, :, n])
+    end
+    
+    Axis(fig[1, 2]; xlabel = "μ", ylabel = "σ", title = "burn-in removed")
+    for n in 1:nchains
+        scatter!(θ[1, burnin:end, n], θ[2, burnin:end, n]; 
+                 color = (Makie.wong_colors()[n], 0.2))
+    end
+
+    fig
+end
+```
+

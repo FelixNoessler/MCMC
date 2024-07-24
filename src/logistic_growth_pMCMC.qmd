@@ -1,5 +1,5 @@
 ---
-title: "Logistic growth - state space model"
+title: "Logistic growth - state space model with pMCMC"
 engine: julia
 bibliography: lit.bib
 format:
@@ -13,6 +13,7 @@ format:
 ## Load packages
 
 ```{julia}
+#| code-fold: true
 using AdaptiveParticleMCMC
 using CairoMakie
 using Distributions
@@ -35,6 +36,7 @@ set_theme!(
 ## Generate data
 
 ```{julia}
+#| code-fold: true
 function generate_data(n_observations; σ_p, σ_o, r, K, x₀)
     ts = 1:n_observations
     T = length(ts)
@@ -149,6 +151,17 @@ function sample_prior()
             log_x₀ = rand(Normal(log(10.0), 0.5)))
 end
 
+function sample_initial_values(sol)
+    f() = randn() * 0.01 + 1
+    p = sol.parameter
+    
+    LVector(log_r = log(p[:r] * f()),
+        log_K = log(p[:K] * f()),
+        log_sigma_p = log(p[:σ_p] * f()),
+        log_sigma_o = log(p[:σ_o] * f()),
+        log_x₀ = log(p[:x₀] * f()))
+end
+
 function sample_prior_contrain(n)
     (; r = exp.(rand(Normal(log(0.1), 1.0), n)),
        K = exp.(rand(Normal(log(200.0), 0.5), n)),
@@ -199,6 +212,7 @@ end
 
 ## Prior predictive checks
 ```{julia}
+#| code-fold: true
 let
     p_samples = sample_prior_contrain(10000)
     p_chain = MCMCChains.Chains(hcat(collect(p_samples)...), collect(keys(p_samples)))
@@ -301,8 +315,9 @@ post_pmcmc, hidden_state = let
 
     post_objs = []
     hidden_states_obj = []
-    for i in 1:nchains
-        theta0 = sample_prior()
+    Threads.@threads for i in 1:nchains
+        # theta0 = sample_prior()
+        theta0 = sample_initial_values(true_solution)
         state = SMCState(T, nparticles, Particle, ModelScratch, set_param!,
                          log_potential, transition!, log_transition);
         # out = adaptive_pmmh(theta0, prior, state, nsamples; thin = 1,
@@ -330,8 +345,8 @@ end;
 
 ## Convergence diagnostics
 
-
 ```{julia}
+#| code-fold: true
 burnin = nsamples ÷ 3
 thin = 50
 chn_pmcmc = MCMCChains.Chains(post_pmcmc[burnin:thin:end, :, :], collect(fieldnames(Param)))
@@ -339,22 +354,26 @@ chn_pmcmc = MCMCChains.Chains(post_pmcmc[burnin:thin:end, :, :], collect(fieldna
 
 
 ```{julia}
+#| code-fold: true
 StatsPlots.plot(chn_pmcmc)
 ```
 
 
 ```{julia}
+#| code-fold: true
 PairPlots.pairplot(chn_pmcmc, PairPlots.Truth( true_solution.parameter))
 ```
 
 
 ```{julia}
+#| code-fold: true
 PairPlots.pairplot(chn_pmcmc[:, :, 1], chn_pmcmc[:, :, 2],
                    chn_pmcmc[:, :, 3], chn_pmcmc[:, :, 4])
 ```
 
 
 ```{julia}
+#| code-fold: true
 let
     n = 1000
     prior_df = (;
@@ -371,9 +390,8 @@ end
 ```
 
 ## Posterior predictive checks
-
-
 ```{julia}
+#| code-fold: true
 let
     q95 = mapslices(x -> quantile(x, [0.025, 0.975]), hidden_state, dims=(2,3))
     q5 = mapslices(x -> quantile(x, [0.25, 0.75]), hidden_state, dims=(2,3))
