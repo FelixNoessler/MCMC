@@ -1,0 +1,412 @@
+---
+title: "Logistic growth - MCMC without modelling the hidden states v1"
+engine: julia
+format:
+    html:
+        toc: true
+        number-sections: true
+        code-fold: show
+        code-tools: true
+---
+
+
+# Load packages
+```{julia}
+#| code-fold: true
+import Random
+import StatsPlots
+
+using AdaptiveMCMC
+using CairoMakie
+using Distributions
+using LinearAlgebra
+using LogDensityProblems
+using MCMCChains
+using PairPlots
+using ProtoStructs
+using Statistics
+using TransformVariables
+using TransformedLogDensities
+using UnPack
+using StateSpaceModels
+
+set_theme!(
+    fontsize = 18,
+    Axis = (; xgridvisible = false, ygridvisible = false,
+            topspinevisible = false, rightspinevisible = false),
+    Legend = (; framevisible = false))
+```
+
+# Generate data
+
+```{julia}
+#| code-fold: true
+function generate_data(n_observations; σ_p, σ_o, r, K, x₀)
+    ts = 1:n_observations
+    T = length(ts)
+
+    s = Array{Float64}(undef, T)
+    x = Array{Float64}(undef, T)
+    y = Array{Float64}(undef, T)
+    ε = rand(Normal(0, σ_p), T)
+
+    for t in ts
+        x_lastt = t == 1 ? x₀ : x[t-1]
+        s_lastt = t == 1 ? x₀ : s[t-1]
+
+        s[t] = (1 + r*(1 - s_lastt/K)) * s_lastt
+        x[t] = (1 + r*(1 - x_lastt/K) + ε[t]) * x_lastt
+        y[t] = rand(Normal(x[t], σ_o))
+    end
+
+    (; ts, s, x, y, parameter = (; σ_o, σ_p, r, K, x₀))
+end
+
+Random.seed!(123)
+true_solution = generate_data(100; σ_p = 0.05, σ_o = 20.0, r = 0.1, K = 400, x₀ = 20.0);
+
+let
+    fig = Figure(size = (750, 300))
+
+    ax = Axis(fig[1, 1]; xlabel = "time", ylabel = "population size")
+    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    lines!(true_solution.ts, true_solution.s, color = :red, label = "process-model state: s")
+    Legend(fig[1, 2], ax)
+    fig
+end
+```
+
+
+# Define the posterior 
+
+$$
+  \begin{gather*}
+    \begin{aligned}
+        y_{t} &=  \mu_{t} + \varepsilon_{t} \quad \varepsilon_{t} \sim \mathcal{N}(0, \sigma^2_{\varepsilon})\\
+        \mu_{t+1} &= \mu_{t} + \eta_{t} \quad \eta_{t} \sim \mathcal{N}(0, \sigma^2_{\eta})\\
+    \end{aligned}
+\end{gather*}
+$$
+
+```{julia}
+my_priors = (;
+    r = truncated(Normal(0.1, 0.05); lower = 0),
+    K = truncated(Normal(500, 500), lower = 0),
+    x₀ = truncated(Normal(15, 20); lower = 0),
+    σ_o = truncated(Normal(0, 50); lower = 0),
+    ρ = Uniform(0, 1),)
+
+@proto struct StateSpaceMod
+    ts::UnitRange{Int64} 
+    y::Vector{Float64}
+    prior_dists::NamedTuple
+    nparameter::Int64
+    transformation
+end
+
+function (problem::StateSpaceMod)(θ)
+    @unpack ts, y, prior_dists = problem
+    @unpack r, K, x₀, σ_o, ρ  = θ
+    
+    logprior = 0
+    for k in keys(prior_dists)
+        logprior += logpdf(prior_dists[k], θ[k])
+    end
+    
+    if logprior ==  -Inf
+        return -Inf
+    end
+        
+    xs = zeros(length(ts))
+    for t in ts
+        # process equation
+        x_last = t == 1 ? x₀ : xs[t-1]
+        xs[t] = (1 + r*(1 - x_last/K)) * x_last
+    end
+    
+    # loglikelihood = sum(logpdf.(Normal(0, σ_o), y .- xs))
+    loglikelihood = ar1_likelihood(xs, y, σ_o, ρ) 
+    
+    if isnan(loglikelihood)
+        return -Inf
+    end
+    
+    return loglikelihood + logprior
+end
+
+function ar1_likelihood(predicted, observed, σ_o, ρ) 
+    if any(isnan.(observed))
+        return(-Inf)
+    end
+    
+    if σ_o <= 0
+        return(-Inf)
+    end
+    
+    if abs(ρ) >= 1
+        return(-Inf)
+    end
+    
+    n = length(observed)
+    res = predicted .- observed
+
+    # ll = 0.5 * (- n * log(2*π)
+    #             - n * log(σ_o^2) 
+    #             + log(1 - ρ^2)
+    #             - (1 - ρ^2) / σ_o^2 * res[1]^2
+    #             - 1 / σ_o^2 * sum((res[2:n] .- ρ .* res[1:(n-1)]) .^ 2))
+
+    # or:
+    # σ_o_adj = σ_o * sqrt(1 - ρ^2)
+    # ll = - (n - 1) / 2 * log(2*π)
+    #      - (n - 1) * log(σ_o_adj)
+    #      - 1 / (2 * σ_o_adj^2) * sum((res[2:n] .- ρ .* res[1:(n-1)]) .^ 2)
+    
+    T = n
+    y = res
+    φ = ρ
+    σ² = σ_o^2
+    stationary_var = σ² / (1 - φ^2)
+    
+    # Log-likelihood computation
+    logL = -0.5 * log(2π * stationary_var) - (y[1]^2 * (1 - φ^2)) / (2 * σ²)  # First term
+    
+    for t in 2:T
+        residual = y[t] - φ * y[t-1]
+        logL += -0.5 * log(2π * σ²) - (residual^2) / (2 * σ²)
+    end
+    
+    return logL
+    
+    
+    
+    return(ll)     
+end
+
+function sample_prior(problem; transform_p = false)
+    @unpack ts, prior_dists, transformation = problem
+    
+    x = []
+    for k in keys(prior_dists)
+        push!(x, rand(prior_dists[k]))
+    end
+    
+    p = (; zip(keys(prior_dists), x)...)
+    if transform_p 
+        return inverse(transformation, p)
+    end
+        
+    return p      
+end    
+
+
+function sample_initial_values(prob, sol; transform_p = false)
+    @unpack ts, prior_dists, transformation = prob
+    @unpack parameter = sol
+    
+    x = []
+    for k in keys(prior_dists)
+        push!(x, (1 + rand(Normal(0.0, 0.01))) * parameter[k])
+    end
+    
+    p = (; zip(keys(prior_dists), x)...)
+    if transform_p 
+        return inverse(transformation, p)
+    end
+        
+    return p      
+end
+
+
+function post_pred(chn, ts; noise = false)
+    p = get(chn; section=:parameters)
+    nsamples = length(p[1])
+    
+    T = length(ts)
+    X = Array{Float64}(undef, T, nsamples)
+    
+    for i in 1:nsamples
+        x = Array{Float64}(undef, T)
+        r = p.r[i]
+        K = p.K[i]
+        x₀ = p.x₀[i]
+        ρ = p.ρ[i]
+        σ_o = p.σ_o[i]
+    
+        for t in ts
+            x_lastt = t == 1 ? x₀ : x[t-1]
+            x[t] = (1 + r*(1 - x_lastt/K)) * x_lastt
+            
+            if noise
+                x[t] *= ρ 
+                x[t] += rand(Normal(0.0, σ_o))
+            end  
+        end
+        X[:, i] = x
+    end
+
+    mapslices(x_t -> quantile(x_t, [0.025, 0.25, 0.5, 0.75, 0.975]), X, dims = 2)
+end
+
+
+
+my_transform = as((r = asℝ₊, K = asℝ₊, x₀ = asℝ₊, σ_o = asℝ₊, ρ  = as𝕀))
+problem = StateSpaceMod(true_solution.ts, true_solution.y, my_priors, 5, my_transform)
+
+ℓ = TransformedLogDensity(problem.transformation, problem)
+posterior(x) = LogDensityProblems.logdensity(ℓ, x)
+posterior(sample_prior(problem; transform_p = true))
+```
+
+# Prior predictive check
+
+```{julia}
+#| code-fold: true
+let 
+    nsamples = 200
+    
+    fig = Figure(; size = (700, 400))
+    ax = Axis(fig[1, 1])
+    for i in 1:nsamples
+        @unpack r, K, x₀ = sample_prior(problem)
+        
+        @unpack ts = problem
+        
+        x = zeros(length(ts))
+        for t in ts
+            # process equation
+            x_last = t == 1 ? x₀ : x[t-1]
+            x[t] = (1 + r*(1 - x_last/K)) * x_last
+        end
+        
+        lines!(ts, x; color = (:black, 0.1))
+    end
+    
+    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    lines!(true_solution.ts, true_solution.s, color = :red, label = "process-model state: s")
+    Legend(fig[1, 2], ax)
+
+    fig
+end
+```
+
+
+# Sampling
+
+```{julia}
+nsamples = 20000
+nchains = 4
+L = 1
+thin = 1
+nparameter = problem.nparameter
+post_raw = zeros(nchains, nparameter, nsamples ÷ thin)
+
+Threads.@threads for n in 1:nchains
+    init_x = sample_prior(problem; transform_p = true)
+    # init_x = sample_initial_values(problem, true_solution; transform_p = true)
+    out = adaptive_rwm(init_x, posterior, nsamples; 
+                       algorithm=:ram, b = 1, L, thin, progress = false)
+    post_raw[n, :, :] = out.X
+end
+```
+
+back to the original space:
+```{julia}
+post = zeros(nsamples ÷ thin, nparameter, nchains)
+for c in 1:nchains
+    for i in 1:(nsamples ÷ thin)
+        post[i, :, c] .= collect(transform(problem.transformation, post_raw[c, :, i])) 
+    end
+end
+
+post
+```
+
+
+# Convergence diagnostics
+## Rhat and estimated sampling size
+```{julia}
+#| code-fold: true
+chn = Chains(post[burnin:end, :, :], collect(keys(my_priors)))
+```
+
+## Pair plot for model parameter 
+```{julia}
+#| code-fold: true
+pairplot(chn, PairPlots.Truth(true_solution.parameter))
+```
+
+```{julia}
+PairPlots.pairplot(chn[:, :, 1], chn[:, :, 2],
+                   chn[:, :, 3], chn[:, :, 4])
+```
+
+```{julia}
+let
+    n = 10000
+    prior_df = (; zip(keys(my_priors), [rand(my_priors[k], n) for k in keys(my_priors)])...)
+
+    PairPlots.pairplot(
+        PairPlots.Series(prior_df, label = "prior", color = (:black, 0.4)),
+        PairPlots.Series(chn, label = "posterior", color = (:red, 0.5)))
+end
+```
+
+## Trace plot for model parameter
+```{julia}
+#| code-fold: true
+StatsPlots.plot(chn)
+```
+
+
+# Posterior predictive check
+
+```{julia}
+#| code-fold: true
+function sample_posterior(data, problem, burnin)
+    nchains, nparameter, nsamples = size(data)
+    transform(problem.transformation, data[sample(1:nchains), :, sample(burnin:nsamples)])
+end
+
+let
+    fig = Figure(size = (800, 500))
+    ax1 = Axis(fig[1, 1]; ylabel = "value", xticklabelsvisible = false)
+
+    for i in 1:200
+        @unpack r, K, x₀ = sample_posterior(post_raw, problem, burnin)
+        x = zeros(length(problem.ts))
+        for t in problem.ts
+            # process equation
+            x_last = t == 1 ? x₀ : x[t-1]
+            x[t] = (1 + r*(1 - x_last/K)) * x_last
+        end
+        
+        lines!(true_solution.ts, x, color = (:black, 0.1))
+    end
+    
+    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    lines!(true_solution.ts, true_solution.s, color = :red, label = "process-model state: s")
+    
+    
+    Legend(fig[1:2, 2], ax1)
+        
+    q_post = post_pred(chn, true_solution.ts; noise = false)
+    ax2 = Axis(fig[2, 1]; xlabel = "time", ylabel = "value")
+    band!(true_solution.ts, q_post[:, 1], q_post[:, 5], color = (:black, 0.2),
+          label = "95% credible interval")
+    band!(true_solution.ts, q_post[:, 2], q_post[:, 4], color = (:black, 0.5),
+          label = "50% credible interval")
+    lines!(true_solution.ts, q_post[:, 3], color = :black, label = "median")
+    
+    lines!(true_solution.ts, true_solution.s, color = :red, linewidth = 3)
+    scatter!(true_solution.ts, true_solution.y, color = :steelblue4, label = "observations: y")
+    lines!(true_solution.ts, true_solution.x, color = :blue, label = "true hidden state: x")
+    linkyaxes!(ax1, ax2)
+    
+    fig
+end
+```
+
