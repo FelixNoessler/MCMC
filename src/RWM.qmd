@@ -141,8 +141,7 @@ function trace_plot(; burnin)
         Axis(fig[i,2])
         for n in 1:nchains
             density!(accepted_θ[n, i, burnin:end];
-                    bins=20, 
-                    color= (Makie.wong_colors()[n], 0.1),
+                    color = (Makie.wong_colors()[n], 0.1),
                     strokecolor = (Makie.wong_colors()[n], 1),
                     strokewidth = 2, strokearound = false)
         end
@@ -222,11 +221,11 @@ begin
     
     ## histogram of the data
     hist!(y; 
-        normalization=:pdf,
-        bins=25,
-        color=(:blue, 0.3),
-        strokecolor=(:white, 0.5),
-        strokewidth=1)
+        normalization = :pdf,
+        bins = 25,
+        color = (:blue, 0.3),
+        strokecolor = (:white, 0.5),
+        strokewidth = 1)
     
     fig
 end

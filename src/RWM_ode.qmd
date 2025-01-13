@@ -175,8 +175,7 @@ function plot_trace_dens(; θ, burnin=nothing)
         Axis(fig[i,2])
         for n in 1:nchains
             density!(θ[n, i, burnin:end];
-                    bins=20, 
-                    color= (Makie.wong_colors()[n], 0.05),
+                    color = (Makie.wong_colors()[n], 0.05),
                     strokecolor = (Makie.wong_colors()[n], 1),
                     strokewidth = 2, strokearound = false)
         end
