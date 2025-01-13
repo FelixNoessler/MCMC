@@ -4,12 +4,6 @@ project:
 
 website:
   title: "Bayesian algorithms"
-  navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
-      
       
   sidebar:
     style: "floating"
